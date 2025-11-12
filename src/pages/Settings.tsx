@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Settings2, Users, Weight, Database } from "lucide-react";
+import { UserManagementDialog } from "@/components/UserManagementDialog";
 
 export default function Settings() {
   return (
@@ -108,9 +109,9 @@ export default function Settings() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
-              La gestion complète des utilisateurs nécessite l'activation de Lovable Cloud.
+              Invitez des utilisateurs et gérez leurs rôles d'accès à l'application.
             </p>
-            <Button variant="outline">Configurer les utilisateurs</Button>
+            <UserManagementDialog />
           </CardContent>
         </Card>
 
