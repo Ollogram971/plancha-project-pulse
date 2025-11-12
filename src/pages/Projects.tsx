@@ -1,9 +1,8 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Search, Filter, Plus, ArrowUpDown } from "lucide-react";
+import { Search } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -11,78 +10,72 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-// Mock data
-const mockProjects = [
-  {
-    id: 1,
-    code: "PNG-2025-001",
-    title: "Restauration écologique zone humide",
-    pole: "Conservation",
-    status: "Validé",
-    score: 94.2,
-    dateStart: "2025-03-15",
-    budget: 250000,
-  },
-  {
-    id: 2,
-    code: "PNG-2025-015",
-    title: "Sentier pédagogique biodiversité",
-    pole: "Éducation",
-    status: "Validé",
-    score: 91.8,
-    dateStart: "2025-04-01",
-    budget: 180000,
-  },
-  {
-    id: 3,
-    code: "PNG-2025-023",
-    title: "Monitoring faune endémique",
-    pole: "Recherche",
-    status: "Validé",
-    score: 89.5,
-    dateStart: "2025-02-20",
-    budget: 320000,
-  },
-  {
-    id: 4,
-    code: "PNG-2024-087",
-    title: "Lutte espèces invasives",
-    pole: "Conservation",
-    status: "En cours",
-    score: 87.3,
-    dateStart: "2024-11-10",
-    budget: 140000,
-  },
-  {
-    id: 5,
-    code: "PNG-2025-042",
-    title: "Infrastructure accueil visiteurs",
-    pole: "Aménagement",
-    status: "À valider",
-    score: 85.1,
-    dateStart: "2025-06-01",
-    budget: 450000,
-  },
-];
+import { useProjects } from "@/hooks/useProjects";
+import { usePoles } from "@/hooks/usePoles";
+import { ProjectDialog } from "@/components/ProjectDialog";
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case "Validé":
+    case "valide":
       return "success";
-    case "En cours":
+    case "en_cours":
       return "secondary";
-    case "À valider":
+    case "a_valider":
       return "warning";
+    case "brouillon":
+      return "default";
+    case "archive":
+      return "destructive";
     default:
       return "default";
   }
+};
+
+const formatStatus = (status: string) => {
+  const statusMap: Record<string, string> = {
+    brouillon: "Brouillon",
+    a_valider: "À valider",
+    valide: "Validé",
+    en_cours: "En cours",
+    archive: "Archivé",
+  };
+  return statusMap[status] || status;
 };
 
 export default function Projects() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterPole, setFilterPole] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+
+  const { data: projects, isLoading } = useProjects();
+  const { data: poles } = usePoles();
+
+  const filteredProjects = useMemo(() => {
+    if (!projects) return [];
+
+    return projects.filter((project) => {
+      const matchesSearch =
+        searchQuery === "" ||
+        project.titre.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        project.code.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesPole =
+        filterPole === "all" || project.pole_id === filterPole;
+
+      const matchesStatus =
+        filterStatus === "all" || project.statut === filterStatus;
+
+      return matchesSearch && matchesPole && matchesStatus;
+    });
+  }, [projects, searchQuery, filterPole, filterStatus]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-pulse text-muted-foreground">Chargement...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -94,10 +87,7 @@ export default function Projects() {
             Gestion et suivi des projets PLANCHA
           </p>
         </div>
-        <Button className="gap-2">
-          <Plus className="h-4 w-4" />
-          Nouveau projet
-        </Button>
+        <ProjectDialog />
       </div>
 
       {/* Filters */}
@@ -124,10 +114,11 @@ export default function Projects() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous les pôles</SelectItem>
-                <SelectItem value="conservation">Conservation</SelectItem>
-                <SelectItem value="education">Éducation</SelectItem>
-                <SelectItem value="recherche">Recherche</SelectItem>
-                <SelectItem value="amenagement">Aménagement</SelectItem>
+                {poles?.map((pole) => (
+                  <SelectItem key={pole.id} value={pole.id}>
+                    {pole.libelle}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select value={filterStatus} onValueChange={setFilterStatus}>
@@ -136,9 +127,11 @@ export default function Projects() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous les statuts</SelectItem>
+                <SelectItem value="brouillon">Brouillon</SelectItem>
+                <SelectItem value="a_valider">À valider</SelectItem>
                 <SelectItem value="valide">Validé</SelectItem>
-                <SelectItem value="encours">En cours</SelectItem>
-                <SelectItem value="avalider">À valider</SelectItem>
+                <SelectItem value="en_cours">En cours</SelectItem>
+                <SelectItem value="archive">Archivé</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -148,53 +141,59 @@ export default function Projects() {
       {/* Projects table */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Liste des projets ({mockProjects.length})</CardTitle>
-            <Button variant="outline" size="sm" className="gap-2">
-              <ArrowUpDown className="h-4 w-4" />
-              Trier
-            </Button>
-          </div>
+          <CardTitle>Liste des projets ({filteredProjects.length})</CardTitle>
           <CardDescription>
             Classés par score PLANCHA décroissant
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {mockProjects.map((project, index) => (
-              <Card key={project.id} className="hover:bg-accent/50 transition-colors cursor-pointer">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
-                      {index + 1}
-                    </div>
-                    <div className="flex-1 min-w-0 space-y-2">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-base">{project.title}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {project.code} • {project.pole}
-                          </p>
+          {filteredProjects.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              Aucun projet trouvé
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredProjects.map((project, index) => (
+                <Card key={project.id} className="hover:bg-accent/50 transition-colors cursor-pointer">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-4">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1 min-w-0 space-y-2">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-base">{project.titre}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {project.code} • {project.poles?.libelle || "N/A"}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Badge variant={getStatusColor(project.statut) as any}>
+                              {formatStatus(project.statut)}
+                            </Badge>
+                            {project.score_total !== null && (
+                              <Badge variant="outline" className="font-mono font-bold">
+                                {project.score_total.toFixed(1)}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <Badge variant={getStatusColor(project.status) as any}>
-                            {project.status}
-                          </Badge>
-                          <Badge variant="outline" className="font-mono font-bold">
-                            {project.score.toFixed(1)}
-                          </Badge>
+                        <div className="flex gap-4 text-sm text-muted-foreground">
+                          {project.date_demarrage && (
+                            <span>Démarrage: {new Date(project.date_demarrage).toLocaleDateString('fr-FR')}</span>
+                          )}
+                          {project.budget_total && (
+                            <span>Budget: {(Number(project.budget_total) / 1000).toFixed(0)}k€</span>
+                          )}
                         </div>
                       </div>
-                      <div className="flex gap-4 text-sm text-muted-foreground">
-                        <span>Démarrage: {new Date(project.dateStart).toLocaleDateString('fr-FR')}</span>
-                        <span>Budget: {(project.budget / 1000).toFixed(0)}k€</span>
-                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

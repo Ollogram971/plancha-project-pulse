@@ -1,32 +1,66 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BarChart3, TrendingUp, FolderKanban, AlertCircle } from "lucide-react";
-
-// Mock data for demonstration
-const mockStats = {
-  totalProjects: 127,
-  validatedProjects: 98,
-  averageScore: 67.3,
-  projectsNeedingAttention: 12,
-};
-
-const mockTopProjects = [
-  { id: 1, code: "PNG-2025-001", title: "Restauration écologique zone humide", score: 94.2, pole: "Conservation" },
-  { id: 2, code: "PNG-2025-015", title: "Sentier pédagogique biodiversité", score: 91.8, pole: "Éducation" },
-  { id: 3, code: "PNG-2025-023", title: "Monitoring faune endémique", score: 89.5, pole: "Recherche" },
-  { id: 4, code: "PNG-2024-087", title: "Lutte espèces invasives", score: 87.3, pole: "Conservation" },
-  { id: 5, code: "PNG-2025-042", title: "Infrastructure accueil visiteurs", score: 85.1, pole: "Aménagement" },
-];
-
-const mockPoleDistribution = [
-  { pole: "Conservation", count: 42, percentage: 33 },
-  { pole: "Éducation", count: 28, percentage: 22 },
-  { pole: "Recherche", count: 25, percentage: 20 },
-  { pole: "Aménagement", count: 18, percentage: 14 },
-  { pole: "Administration", count: 14, percentage: 11 },
-];
+import { useProjects } from "@/hooks/useProjects";
+import { useMemo } from "react";
 
 export default function Dashboard() {
+  const { data: projects, isLoading } = useProjects();
+
+  const stats = useMemo(() => {
+    if (!projects) return null;
+
+    const validatedCount = projects.filter((p) => p.statut === "valide").length;
+    const needsAttention = projects.filter(
+      (p) => p.statut === "a_valider" || p.statut === "brouillon"
+    ).length;
+    const avgScore =
+      projects.reduce((sum, p) => sum + (Number(p.score_total) || 0), 0) /
+      projects.length;
+
+    return {
+      totalProjects: projects.length,
+      validatedProjects: validatedCount,
+      averageScore: avgScore,
+      projectsNeedingAttention: needsAttention,
+    };
+  }, [projects]);
+
+  const topProjects = useMemo(() => {
+    if (!projects) return [];
+    return [...projects]
+      .sort((a, b) => (Number(b.score_total) || 0) - (Number(a.score_total) || 0))
+      .slice(0, 5);
+  }, [projects]);
+
+  const poleDistribution = useMemo(() => {
+    if (!projects) return [];
+
+    const poleCount = new Map<string, number>();
+    projects.forEach((project) => {
+      const pole = project.poles?.libelle || "Non défini";
+      poleCount.set(pole, (poleCount.get(pole) || 0) + 1);
+    });
+
+    const total = projects.length;
+    return Array.from(poleCount.entries())
+      .map(([pole, count]) => ({
+        pole,
+        count,
+        percentage: Math.round((count / total) * 100),
+      }))
+      .sort((a, b) => b.count - a.count);
+  }, [projects]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-pulse text-muted-foreground">Chargement...</div>
+      </div>
+    );
+  }
+
+  if (!stats) return null;
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -45,9 +79,9 @@ export default function Dashboard() {
             <FolderKanban className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockStats.totalProjects}</div>
+            <div className="text-2xl font-bold">{stats.totalProjects}</div>
             <p className="text-xs text-muted-foreground">
-              {mockStats.validatedProjects} validés
+              {stats.validatedProjects} validés
             </p>
           </CardContent>
         </Card>
@@ -58,7 +92,7 @@ export default function Dashboard() {
             <BarChart3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockStats.averageScore}</div>
+            <div className="text-2xl font-bold">{stats.averageScore.toFixed(1)}</div>
             <p className="text-xs text-muted-foreground">
               sur 100 points PLANCHA
             </p>
@@ -72,7 +106,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Math.round((mockStats.validatedProjects / mockStats.totalProjects) * 100)}%
+              {Math.round((stats.validatedProjects / stats.totalProjects) * 100)}%
             </div>
             <p className="text-xs text-muted-foreground">
               +12% ce trimestre
@@ -86,7 +120,7 @@ export default function Dashboard() {
             <AlertCircle className="h-4 w-4 text-warning" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{mockStats.projectsNeedingAttention}</div>
+            <div className="text-2xl font-bold">{stats.projectsNeedingAttention}</div>
             <p className="text-xs text-muted-foreground">
               projets en attente
             </p>
@@ -105,24 +139,30 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {mockTopProjects.map((project, index) => (
-                <div key={project.id} className="flex items-start gap-4">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold text-sm">
-                    {index + 1}
-                  </div>
-                  <div className="flex-1 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium leading-none">{project.title}</p>
-                      <Badge variant="secondary" className="ml-2">
-                        {project.score.toFixed(1)}
-                      </Badge>
+              {topProjects.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Aucun projet disponible
+                </p>
+              ) : (
+                topProjects.map((project, index) => (
+                  <div key={project.id} className="flex items-start gap-4">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold text-sm">
+                      {index + 1}
                     </div>
-                    <p className="text-xs text-muted-foreground">
-                      {project.code} • {project.pole}
-                    </p>
+                    <div className="flex-1 space-y-1">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium leading-none">{project.titre}</p>
+                        <Badge variant="secondary" className="ml-2">
+                          {Number(project.score_total || 0).toFixed(1)}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {project.code} • {project.poles?.libelle || "N/A"}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
@@ -137,7 +177,12 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {mockPoleDistribution.map((item) => (
+              {poleDistribution.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  Aucune donnée disponible
+                </p>
+              ) : (
+                poleDistribution.map((item) => (
                 <div key={item.pole} className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
                     <span className="font-medium">{item.pole}</span>
@@ -152,7 +197,8 @@ export default function Dashboard() {
                     />
                   </div>
                 </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
