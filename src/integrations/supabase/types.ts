@@ -245,6 +245,7 @@ export type Database = {
           chef_projet_id: string | null
           code: string
           created_at: string
+          created_by: string | null
           date_demarrage: string | null
           date_fin: string | null
           date_previsionnelle_debut: string | null
@@ -272,6 +273,7 @@ export type Database = {
           chef_projet_id?: string | null
           code: string
           created_at?: string
+          created_by?: string | null
           date_demarrage?: string | null
           date_fin?: string | null
           date_previsionnelle_debut?: string | null
@@ -299,6 +301,7 @@ export type Database = {
           chef_projet_id?: string | null
           code?: string
           created_at?: string
+          created_by?: string | null
           date_demarrage?: string | null
           date_fin?: string | null
           date_previsionnelle_debut?: string | null

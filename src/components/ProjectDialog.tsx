@@ -8,6 +8,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus } from "lucide-react";
 import { useCreateProject } from "@/hooks/useProjects";
 import { usePoles } from "@/hooks/usePoles";
+import { z } from "zod";
+import { useToast } from "@/hooks/use-toast";
+
+const projectSchema = z.object({
+  code: z.string()
+    .trim()
+    .min(1, "Code requis")
+    .max(50, "Code trop long (max 50 caractères)")
+    .regex(/^PNG-\d{4}-\d{3}$/, "Format attendu: PNG-YYYY-NNN (ex: PNG-2025-001)"),
+  titre: z.string()
+    .trim()
+    .min(3, "Titre trop court (min 3 caractères)")
+    .max(200, "Titre trop long (max 200 caractères)"),
+  description: z.string()
+    .trim()
+    .max(5000, "Description trop longue (max 5000 caractères)")
+    .optional()
+    .or(z.literal("")),
+  pole_id: z.string().uuid("Pôle invalide")
+});
 
 export function ProjectDialog() {
   const [open, setOpen] = useState(false);
@@ -20,12 +40,26 @@ export function ProjectDialog() {
 
   const createProject = useCreateProject();
   const { data: poles } = usePoles();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await createProject.mutateAsync(formData);
-    setOpen(false);
-    setFormData({ code: "", titre: "", description: "", pole_id: "" });
+    
+    try {
+      const validated = projectSchema.parse(formData);
+      await createProject.mutateAsync(validated);
+      setOpen(false);
+      setFormData({ code: "", titre: "", description: "", pole_id: "" });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const firstError = error.errors[0];
+        toast({
+          variant: "destructive",
+          title: "Validation échouée",
+          description: firstError.message,
+        });
+      }
+    }
   };
 
   return (
