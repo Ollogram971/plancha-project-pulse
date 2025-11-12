@@ -10,6 +10,7 @@ import { useCreateProject } from "@/hooks/useProjects";
 import { usePoles } from "@/hooks/usePoles";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
+import { PoleDialog } from "./PoleDialog";
 
 const projectSchema = z.object({
   code: z.string()
@@ -31,6 +32,7 @@ const projectSchema = z.object({
 
 export function ProjectDialog() {
   const [open, setOpen] = useState(false);
+  const [poleDialogOpen, setPoleDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     code: "",
     titre: "",
@@ -41,6 +43,10 @@ export function ProjectDialog() {
   const createProject = useCreateProject();
   const { data: poles } = usePoles();
   const { toast } = useToast();
+
+  const handlePoleCreated = (poleId: string) => {
+    setFormData({ ...formData, pole_id: poleId });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -91,22 +97,33 @@ export function ProjectDialog() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="pole">Pôle *</Label>
-              <Select
-                required
-                value={formData.pole_id}
-                onValueChange={(value) => setFormData({ ...formData, pole_id: value })}
-              >
-                <SelectTrigger id="pole">
-                  <SelectValue placeholder="Sélectionner un pôle" />
-                </SelectTrigger>
-                <SelectContent>
-                  {poles?.map((pole) => (
-                    <SelectItem key={pole.id} value={pole.id}>
-                      {pole.libelle}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2">
+                <Select
+                  required
+                  value={formData.pole_id}
+                  onValueChange={(value) => setFormData({ ...formData, pole_id: value })}
+                >
+                  <SelectTrigger id="pole" className="flex-1">
+                    <SelectValue placeholder="Sélectionner un pôle" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {poles?.map((pole) => (
+                      <SelectItem key={pole.id} value={pole.id}>
+                        {pole.libelle}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setPoleDialogOpen(true)}
+                  title="Créer un nouveau pôle"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
           <div className="space-y-2">
@@ -139,6 +156,11 @@ export function ProjectDialog() {
           </div>
         </form>
       </DialogContent>
+      <PoleDialog 
+        open={poleDialogOpen} 
+        onOpenChange={setPoleDialogOpen}
+        onPoleCreated={handlePoleCreated}
+      />
     </Dialog>
   );
 }
