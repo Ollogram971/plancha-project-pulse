@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +44,7 @@ const formatStatus = (status: string) => {
 };
 
 export default function Projects() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterPole, setFilterPole] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
@@ -154,7 +156,11 @@ export default function Projects() {
           ) : (
             <div className="space-y-4">
               {filteredProjects.map((project, index) => (
-                <Card key={project.id} className="hover:bg-accent/50 transition-colors cursor-pointer">
+                <Card 
+                  key={project.id} 
+                  className="hover:bg-accent/50 transition-colors cursor-pointer"
+                  onClick={() => navigate(`/projects/${project.id}`)}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-start gap-4">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold">
