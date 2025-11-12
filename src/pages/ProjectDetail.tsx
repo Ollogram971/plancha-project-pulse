@@ -1,10 +1,12 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { ProjectEditDialog } from "@/components/ProjectEditDialog";
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -37,6 +39,7 @@ const formatStatus = (status: string) => {
 export default function ProjectDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const { data: project, isLoading } = useQuery({
     queryKey: ["project", id],
@@ -92,9 +95,15 @@ export default function ProjectDetail() {
           <h1 className="text-3xl font-bold tracking-tight">{project.titre}</h1>
           <p className="text-muted-foreground mt-2">{project.code}</p>
         </div>
-        <Badge variant={getStatusColor(project.statut) as any}>
-          {formatStatus(project.statut)}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge variant={getStatusColor(project.statut) as any}>
+            {formatStatus(project.statut)}
+          </Badge>
+          <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
+            <Edit className="mr-2 h-4 w-4" />
+            Modifier
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -240,6 +249,12 @@ export default function ProjectDetail() {
           </CardContent>
         </Card>
       )}
+
+      <ProjectEditDialog 
+        open={editDialogOpen} 
+        onOpenChange={setEditDialogOpen}
+        project={project}
+      />
     </div>
   );
 }
