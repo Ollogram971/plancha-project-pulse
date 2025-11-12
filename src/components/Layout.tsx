@@ -1,8 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, FolderKanban, Settings, Menu, Trees } from "lucide-react";
+import { LayoutDashboard, FolderKanban, Settings, Menu, Trees, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navigation = [
   { name: "Tableau de bord", href: "/", icon: LayoutDashboard },
@@ -13,6 +14,7 @@ const navigation = [
 export function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { signOut, user } = useAuth();
 
   return (
     <div className="min-h-screen bg-background">
@@ -79,8 +81,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           <div className="ml-auto flex items-center gap-2">
             <span className="text-sm text-muted-foreground hidden sm:inline">
-              Parc National de la Guadeloupe
+              {user?.email}
             </span>
+            <Button variant="ghost" size="icon" onClick={signOut} title="Se déconnecter">
+              <LogOut className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </header>
