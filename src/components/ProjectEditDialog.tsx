@@ -28,6 +28,7 @@ const projectUpdateSchema = z.object({
   avancement: z.string().optional(),
   risques: z.string().trim().max(2000, "Risques trop long (max 2000 caractères)").optional().or(z.literal("")),
   date_demarrage: z.string().optional(),
+  date_fin: z.string().optional(),
 }).refine((data) => {
   if (data.statut === 'en_cours' && !data.date_demarrage) {
     return false;
@@ -47,6 +48,19 @@ const projectUpdateSchema = z.object({
 }, {
   message: "Le budget acquis ne peut pas être supérieur au budget total",
   path: ["budget_acquis"],
+}).refine((data) => {
+  if (data.date_demarrage && data.date_fin) {
+    const dateDemarrage = new Date(data.date_demarrage);
+    const dateFin = new Date(data.date_fin);
+    
+    if (dateDemarrage > dateFin) {
+      return false;
+    }
+  }
+  return true;
+}, {
+  message: "La date de démarrage doit être inférieure ou égale à la date de fin",
+  path: ["date_demarrage"],
 });
 
 type ProjectStatus = 'brouillon' | 'a_valider' | 'valide' | 'en_cours' | 'archive';
@@ -70,6 +84,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
     avancement: string;
     risques: string;
     date_demarrage: string;
+    date_fin: string;
   }>({
     titre: "",
     description: "",
@@ -81,6 +96,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
     avancement: "",
     risques: "",
     date_demarrage: "",
+    date_fin: "",
   });
 
   const updateProject = useUpdateProject();
@@ -100,6 +116,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
         avancement: project.avancement?.toString() || "",
         risques: project.risques || "",
         date_demarrage: project.date_demarrage || "",
+        date_fin: project.date_fin || "",
       });
     }
   }, [project]);
@@ -115,6 +132,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
         budget_acquis: validated.budget_acquis ? parseFloat(validated.budget_acquis) : null,
         avancement: validated.avancement ? parseInt(validated.avancement) : null,
         date_demarrage: validated.date_demarrage || null,
+        date_fin: validated.date_fin || null,
       };
       
       await updateProject.mutateAsync({ id: project.id, data: updateData });
@@ -227,19 +245,31 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="date_demarrage">
-              Date de démarrage {formData.statut === 'en_cours' && <span className="text-destructive">*</span>}
-            </Label>
-            <Input
-              id="date_demarrage"
-              type="date"
-              value={formData.date_demarrage}
-              onChange={(e) => setFormData({ ...formData, date_demarrage: e.target.value })}
-            />
-            {formData.statut === 'en_cours' && !formData.date_demarrage && (
-              <p className="text-sm text-destructive">La date de démarrage est obligatoire pour les projets en cours</p>
-            )}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="date_demarrage">
+                Date de démarrage {formData.statut === 'en_cours' && <span className="text-destructive">*</span>}
+              </Label>
+              <Input
+                id="date_demarrage"
+                type="date"
+                value={formData.date_demarrage}
+                onChange={(e) => setFormData({ ...formData, date_demarrage: e.target.value })}
+              />
+              {formData.statut === 'en_cours' && !formData.date_demarrage && (
+                <p className="text-sm text-destructive">La date de démarrage est obligatoire pour les projets en cours</p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="date_fin">Date de fin</Label>
+              <Input
+                id="date_fin"
+                type="date"
+                value={formData.date_fin}
+                onChange={(e) => setFormData({ ...formData, date_fin: e.target.value })}
+              />
+            </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
