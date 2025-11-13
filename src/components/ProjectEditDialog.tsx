@@ -36,6 +36,17 @@ const projectUpdateSchema = z.object({
 }, {
   message: "La date de démarrage est obligatoire pour les projets en cours",
   path: ["date_demarrage"],
+}).refine((data) => {
+  const budgetTotal = data.budget_total ? parseFloat(data.budget_total) : null;
+  const budgetAcquis = data.budget_acquis ? parseFloat(data.budget_acquis) : null;
+  
+  if (budgetTotal !== null && budgetAcquis !== null && budgetAcquis > budgetTotal) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Le budget acquis ne peut pas être supérieur au budget total",
+  path: ["budget_acquis"],
 });
 
 type ProjectStatus = 'brouillon' | 'a_valider' | 'valide' | 'en_cours' | 'archive';
