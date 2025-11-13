@@ -27,7 +27,19 @@ const projectUpdateSchema = z.object({
   financement_statut: z.enum(['aucun', 'recherche', 'partiel', 'complet']).optional(),
   avancement: z.string().optional(),
   risques: z.string().trim().max(2000, "Risques trop long (max 2000 caractères)").optional().or(z.literal("")),
+  date_demarrage: z.string().optional(),
+}).refine((data) => {
+  if (data.statut === 'en_cours' && !data.date_demarrage) {
+    return false;
+  }
+  return true;
+}, {
+  message: "La date de démarrage est obligatoire pour les projets en cours",
+  path: ["date_demarrage"],
 });
+
+type ProjectStatus = 'brouillon' | 'a_valider' | 'valide' | 'en_cours' | 'archive';
+type FinancingStatus = 'aucun' | 'recherche' | 'partiel' | 'complet';
 
 interface ProjectEditDialogProps {
   open: boolean;
@@ -36,16 +48,28 @@ interface ProjectEditDialogProps {
 }
 
 export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDialogProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    titre: string;
+    description: string;
+    pole_id: string;
+    statut: ProjectStatus;
+    budget_total: string;
+    budget_acquis: string;
+    financement_statut: FinancingStatus;
+    avancement: string;
+    risques: string;
+    date_demarrage: string;
+  }>({
     titre: "",
     description: "",
     pole_id: "",
-    statut: "brouillon" as const,
+    statut: "brouillon",
     budget_total: "",
     budget_acquis: "",
-    financement_statut: "aucun" as const,
+    financement_statut: "aucun",
     avancement: "",
     risques: "",
+    date_demarrage: "",
   });
 
   const updateProject = useUpdateProject();
@@ -64,6 +88,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
         financement_statut: project.financement_statut || "aucun",
         avancement: project.avancement?.toString() || "",
         risques: project.risques || "",
+        date_demarrage: project.date_demarrage || "",
       });
     }
   }, [project]);
@@ -78,6 +103,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
         budget_total: validated.budget_total ? parseFloat(validated.budget_total) : null,
         budget_acquis: validated.budget_acquis ? parseFloat(validated.budget_acquis) : null,
         avancement: validated.avancement ? parseInt(validated.avancement) : null,
+        date_demarrage: validated.date_demarrage || null,
       };
       
       await updateProject.mutateAsync({ id: project.id, data: updateData });
@@ -188,6 +214,21 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
                 onChange={(e) => setFormData({ ...formData, budget_acquis: e.target.value })}
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="date_demarrage">
+              Date de démarrage {formData.statut === 'en_cours' && <span className="text-destructive">*</span>}
+            </Label>
+            <Input
+              id="date_demarrage"
+              type="date"
+              value={formData.date_demarrage}
+              onChange={(e) => setFormData({ ...formData, date_demarrage: e.target.value })}
+            />
+            {formData.statut === 'en_cours' && !formData.date_demarrage && (
+              <p className="text-sm text-destructive">La date de démarrage est obligatoire pour les projets en cours</p>
+            )}
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
