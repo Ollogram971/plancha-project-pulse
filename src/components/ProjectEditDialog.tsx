@@ -24,7 +24,7 @@ const projectUpdateSchema = z.object({
   statut: z.enum(['brouillon', 'a_valider', 'valide', 'en_cours', 'archive']),
   budget_total: z.string().optional(),
   budget_acquis: z.string().optional(),
-  financement_statut: z.enum(['aucun', 'recherche', 'partiel', 'complet']).optional(),
+  financement_statut: z.enum(['aucun', 'recherche_financement', 'partiel', 'complet']).optional(),
   avancement: z.string().optional(),
   risques: z.string().trim().max(2000, "Risques trop long (max 2000 caractères)").optional().or(z.literal("")),
   date_demarrage: z.string().optional(),
@@ -39,7 +39,7 @@ const projectUpdateSchema = z.object({
 });
 
 type ProjectStatus = 'brouillon' | 'a_valider' | 'valide' | 'en_cours' | 'archive';
-type FinancingStatus = 'aucun' | 'recherche' | 'partiel' | 'complet';
+type FinancingStatus = 'aucun' | 'recherche_financement' | 'partiel' | 'complet';
 
 interface ProjectEditDialogProps {
   open: boolean;
@@ -243,7 +243,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="aucun">Aucun</SelectItem>
-                  <SelectItem value="recherche">Recherche</SelectItem>
+                  <SelectItem value="recherche_financement">Recherche</SelectItem>
                   <SelectItem value="partiel">Partiel</SelectItem>
                   <SelectItem value="complet">Complet</SelectItem>
                 </SelectContent>
