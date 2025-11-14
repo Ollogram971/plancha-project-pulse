@@ -103,8 +103,31 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
   const { data: poles } = usePoles();
   const { toast } = useToast();
 
+  // Calcul automatique de l'avancement
+  const calculateAvancement = (dateDebutStr: string, dateFinStr: string): string => {
+    if (!dateDebutStr || !dateFinStr) return "";
+    
+    const dateDebut = new Date(dateDebutStr);
+    const dateFin = new Date(dateFinStr);
+    const dateActuelle = new Date();
+    
+    const dureeTotal = dateFin.getTime() - dateDebut.getTime();
+    const dureeEcoulee = dateActuelle.getTime() - dateDebut.getTime();
+    
+    if (dureeTotal <= 0) return "0";
+    
+    const avancement = Math.round((dureeEcoulee / dureeTotal) * 100);
+    
+    // Borner entre 0 et 100
+    return Math.min(Math.max(avancement, 0), 100).toString();
+  };
+
   useEffect(() => {
     if (project) {
+      const dateDebut = project.date_demarrage || "";
+      const dateFin = project.date_fin || "";
+      const avancementCalcule = dateDebut && dateFin ? calculateAvancement(dateDebut, dateFin) : project.avancement?.toString() || "";
+      
       setFormData({
         titre: project.titre || "",
         description: project.description || "",
@@ -113,13 +136,23 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
         budget_total: project.budget_total?.toString() || "",
         budget_acquis: project.budget_acquis?.toString() || "",
         financement_statut: project.financement_statut || "aucun",
-        avancement: project.avancement?.toString() || "",
+        avancement: avancementCalcule,
         risques: project.risques || "",
-        date_demarrage: project.date_demarrage || "",
-        date_fin: project.date_fin || "",
+        date_demarrage: dateDebut,
+        date_fin: dateFin,
       });
     }
   }, [project]);
+
+  // Recalculer l'avancement quand les dates changent
+  useEffect(() => {
+    if (formData.date_demarrage && formData.date_fin) {
+      const avancementCalcule = calculateAvancement(formData.date_demarrage, formData.date_fin);
+      if (avancementCalcule !== formData.avancement) {
+        setFormData(prev => ({ ...prev, avancement: avancementCalcule }));
+      }
+    }
+  }, [formData.date_demarrage, formData.date_fin]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -292,7 +325,12 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="avancement">Avancement (%)</Label>
+              <Label htmlFor="avancement">
+                Avancement (%)
+                {formData.date_demarrage && formData.date_fin && (
+                  <span className="text-xs text-muted-foreground ml-2">(calculé automatiquement)</span>
+                )}
+              </Label>
               <Input
                 id="avancement"
                 type="number"
@@ -300,7 +338,14 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
                 max="100"
                 value={formData.avancement}
                 onChange={(e) => setFormData({ ...formData, avancement: e.target.value })}
+                disabled={!!(formData.date_demarrage && formData.date_fin)}
+                className={formData.date_demarrage && formData.date_fin ? "bg-muted" : ""}
               />
+              {formData.date_demarrage && formData.date_fin && (
+                <p className="text-xs text-muted-foreground">
+                  L'avancement est calculé automatiquement en fonction des dates
+                </p>
+              )}
             </div>
           </div>
 
