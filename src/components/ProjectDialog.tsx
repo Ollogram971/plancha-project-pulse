@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { usePoles } from "@/hooks/usePoles";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { PoleDialog } from "./PoleDialog";
+import { supabase } from "@/integrations/supabase/client";
 
 const projectSchema = z.object({
   code: z.string()
@@ -43,6 +44,42 @@ export function ProjectDialog() {
   const createProject = useCreateProject();
   const { data: poles } = usePoles();
   const { toast } = useToast();
+
+  // Generate next project code when dialog opens
+  useEffect(() => {
+    if (open) {
+      generateNextProjectCode();
+    }
+  }, [open]);
+
+  const generateNextProjectCode = async () => {
+    const currentYear = new Date().getFullYear();
+    const yearPrefix = `PNG-${currentYear}-`;
+
+    // Fetch projects for current year
+    const { data: projects, error } = await supabase
+      .from("projects")
+      .select("code")
+      .like("code", `${yearPrefix}%`)
+      .order("code", { ascending: false })
+      .limit(1);
+
+    if (error) {
+      console.error("Error fetching projects:", error);
+      setFormData(prev => ({ ...prev, code: `${yearPrefix}001` }));
+      return;
+    }
+
+    let nextNumber = 1;
+    if (projects && projects.length > 0) {
+      const lastCode = projects[0].code;
+      const lastNumber = parseInt(lastCode.split("-")[2] || "0");
+      nextNumber = lastNumber + 1;
+    }
+
+    const nextCode = `${yearPrefix}${nextNumber.toString().padStart(3, "0")}`;
+    setFormData(prev => ({ ...prev, code: nextCode }));
+  };
 
   const handlePoleCreated = (poleId: string) => {
     setFormData({ ...formData, pole_id: poleId });
