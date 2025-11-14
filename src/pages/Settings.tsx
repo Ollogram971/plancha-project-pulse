@@ -16,7 +16,7 @@ export default function Settings() {
   const { data: auditLogs, isLoading } = useQuery({
     queryKey: ["audit-logs"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: logs, error } = await supabase
         .from("audit_log")
         .select(`
           *,
@@ -29,7 +29,33 @@ export default function Settings() {
         .limit(50);
       
       if (error) throw error;
-      return data;
+
+      // Fetch project titles for project-related logs
+      const projectIds = logs
+        ?.filter(log => log.entite === 'projects')
+        .map(log => log.entite_id) || [];
+
+      let projectTitles: Record<string, string> = {};
+      if (projectIds.length > 0) {
+        const { data: projects } = await supabase
+          .from("projects")
+          .select("id, titre")
+          .in("id", projectIds);
+        
+        if (projects) {
+          projectTitles = Object.fromEntries(
+            projects.map(p => [p.id, p.titre])
+          );
+        }
+      }
+
+      // Enrich logs with project titles
+      return logs?.map(log => ({
+        ...log,
+        entity_display: log.entite === 'projects' && projectTitles[log.entite_id]
+          ? projectTitles[log.entite_id]
+          : log.entite
+      }));
     },
   });
 
@@ -205,7 +231,7 @@ export default function Settings() {
                             <span className="capitalize">{log.action}</span>
                           </TableCell>
                           <TableCell className="text-sm">
-                            <span className="capitalize">{log.entite}</span>
+                            {log.entity_display}
                           </TableCell>
                         </TableRow>
                       ))}
