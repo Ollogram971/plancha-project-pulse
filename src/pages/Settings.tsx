@@ -8,8 +8,8 @@ import { UserManagementDialog } from "@/components/UserManagementDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { format } from "date-fns/format";
+import { fr } from "date-fns/locale/fr";
 
 export default function Settings() {
   // Fetch audit logs
