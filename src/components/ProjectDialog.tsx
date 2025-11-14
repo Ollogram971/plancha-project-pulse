@@ -90,6 +90,23 @@ export function ProjectDialog() {
     
     try {
       const validated = projectSchema.parse(formData);
+      
+      // Check if project code already exists
+      const { data: existingProject } = await supabase
+        .from("projects")
+        .select("id")
+        .eq("code", validated.code)
+        .maybeSingle();
+
+      if (existingProject) {
+        toast({
+          variant: "destructive",
+          title: "Code projet déjà utilisé",
+          description: `Le code "${validated.code}" existe déjà. Veuillez choisir un autre code.`,
+        });
+        return;
+      }
+
       await createProject.mutateAsync(validated);
       setOpen(false);
       setFormData({ code: "", titre: "", description: "", pole_id: "" });
