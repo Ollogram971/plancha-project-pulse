@@ -4,6 +4,7 @@ import { ArrowLeft, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ProjectEditDialog } from "@/components/ProjectEditDialog";
@@ -201,9 +202,15 @@ export default function ProjectDetail() {
               </div>
             )}
             {project.avancement !== null && (
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Avancement</p>
-                <p className="text-base">{project.avancement}%</p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-medium text-muted-foreground">Avancement</p>
+                  <p className="text-sm font-semibold">{project.avancement}%</p>
+                </div>
+                <Progress 
+                  value={project.avancement} 
+                  className="h-3"
+                />
               </div>
             )}
           </CardContent>
