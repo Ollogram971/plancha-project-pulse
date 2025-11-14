@@ -3,10 +3,36 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Settings2, Users, Weight, Database } from "lucide-react";
+import { Settings2, Users, Weight, Database, FileText } from "lucide-react";
 import { UserManagementDialog } from "@/components/UserManagementDialog";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 export default function Settings() {
+  // Fetch audit logs
+  const { data: auditLogs, isLoading } = useQuery({
+    queryKey: ["audit-logs"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("audit_log")
+        .select(`
+          *,
+          profiles:author_id (
+            full_name,
+            email
+          )
+        `)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      
+      if (error) throw error;
+      return data;
+    },
+  });
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -135,6 +161,64 @@ export default function Settings() {
               </div>
               <p className="text-sm text-muted-foreground">
                 Formats supportés: ODS, XLSX, CSV, PDF
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Audit Log */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-primary" />
+              <CardTitle>Audit</CardTitle>
+            </div>
+            <CardDescription>
+              Suivi des modifications et des actions effectuées dans l'application
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {isLoading ? (
+                <p className="text-sm text-muted-foreground">Chargement...</p>
+              ) : auditLogs && auditLogs.length > 0 ? (
+                <div className="border rounded-md">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Utilisateur</TableHead>
+                        <TableHead>Action</TableHead>
+                        <TableHead>Entité</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {auditLogs.map((log) => (
+                        <TableRow key={log.id}>
+                          <TableCell className="text-sm">
+                            {format(new Date(log.created_at), "dd/MM/yyyy HH:mm", { locale: fr })}
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            {log.profiles?.full_name || log.profiles?.email || "Système"}
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            <span className="capitalize">{log.action}</span>
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            <span className="capitalize">{log.entite}</span>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Aucun enregistrement d'audit disponible
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Affichage des 50 dernières actions
               </p>
             </div>
           </CardContent>

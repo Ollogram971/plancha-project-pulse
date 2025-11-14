@@ -613,8 +613,17 @@ export type Database = {
     Enums: {
       app_role: "admin" | "contributeur" | "lecteur"
       feasibility_level: "bloquant" | "mitige" | "bon" | "optimal"
-      financing_status: "aucun" | "partiel" | "complet"
-      project_status: "brouillon" | "a_valider" | "valide" | "archive"
+      financing_status:
+        | "aucun"
+        | "recherche_financement"
+        | "partiel"
+        | "complet"
+      project_status:
+        | "brouillon"
+        | "a_valider"
+        | "valide"
+        | "archive"
+        | "en_cours"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -744,8 +753,19 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "contributeur", "lecteur"],
       feasibility_level: ["bloquant", "mitige", "bon", "optimal"],
-      financing_status: ["aucun", "partiel", "complet"],
-      project_status: ["brouillon", "a_valider", "valide", "archive"],
+      financing_status: [
+        "aucun",
+        "recherche_financement",
+        "partiel",
+        "complet",
+      ],
+      project_status: [
+        "brouillon",
+        "a_valider",
+        "valide",
+        "archive",
+        "en_cours",
+      ],
     },
   },
 } as const
