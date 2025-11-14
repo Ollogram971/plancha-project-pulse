@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, FolderKanban, Settings, Menu, Trees, LogOut } from "lucide-react";
+import { LayoutDashboard, FolderKanban, Settings, Menu, LogOut } from "lucide-react";
+import spiraleLogo from "@/assets/spirale_rose.png";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
@@ -54,7 +55,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 font-semibold">
-            <Trees className="h-6 w-6 text-primary" />
+            <img src={spiraleLogo} alt="PLANCHA" className="h-8 w-8" />
             <span className="hidden sm:inline-block">PLANCHA Projets</span>
           </Link>
 
