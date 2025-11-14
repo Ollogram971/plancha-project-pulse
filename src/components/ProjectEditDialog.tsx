@@ -27,6 +27,7 @@ const projectUpdateSchema = z.object({
   financement_statut: z.enum(['aucun', 'recherche_financement', 'partiel', 'complet']).optional(),
   avancement: z.string().optional(),
   risques: z.string().trim().max(2000, "Risques trop long (max 2000 caractères)").optional().or(z.literal("")),
+  date_previsionnelle_debut: z.string().optional(),
   date_demarrage: z.string().optional(),
   date_fin: z.string().optional(),
 }).refine((data) => {
@@ -83,6 +84,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
     financement_statut: FinancingStatus;
     avancement: string;
     risques: string;
+    date_previsionnelle_debut: string;
     date_demarrage: string;
     date_fin: string;
   }>({
@@ -95,6 +97,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
     financement_statut: "aucun",
     avancement: "",
     risques: "",
+    date_previsionnelle_debut: "",
     date_demarrage: "",
     date_fin: "",
   });
@@ -138,6 +141,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
         financement_statut: project.financement_statut || "aucun",
         avancement: avancementCalcule,
         risques: project.risques || "",
+        date_previsionnelle_debut: project.date_previsionnelle_debut || "",
         date_demarrage: dateDebut,
         date_fin: dateFin,
       });
@@ -164,6 +168,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
         budget_total: validated.budget_total ? parseFloat(validated.budget_total) : null,
         budget_acquis: validated.budget_acquis ? parseFloat(validated.budget_acquis) : null,
         avancement: validated.avancement ? parseInt(validated.avancement) : null,
+        date_previsionnelle_debut: validated.date_previsionnelle_debut || null,
         date_demarrage: validated.date_demarrage || null,
         date_fin: validated.date_fin || null,
       };
@@ -280,6 +285,16 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
+              <Label htmlFor="date_previsionnelle_debut">Date prévisionnelle de début</Label>
+              <Input
+                id="date_previsionnelle_debut"
+                type="date"
+                value={formData.date_previsionnelle_debut}
+                onChange={(e) => setFormData({ ...formData, date_previsionnelle_debut: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="date_demarrage">
                 Date de démarrage {formData.statut === 'en_cours' && <span className="text-destructive">*</span>}
               </Label>
@@ -293,7 +308,9 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
                 <p className="text-sm text-destructive">La date de démarrage est obligatoire pour les projets en cours</p>
               )}
             </div>
+          </div>
 
+          <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="date_fin">Date de fin</Label>
               <Input
