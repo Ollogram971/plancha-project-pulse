@@ -150,7 +150,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
       const score = scores[criterion.id] || 0;
       const weight = weights.find((w) => w.criterion_id === criterion.id);
       if (weight) {
-        total += (score * weight.poids_percent) / 100;
+        total += (score / 4) * weight.poids_percent;
       }
     });
 
@@ -488,7 +488,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
                       </Label>
                       {scores[criterion.id] !== undefined && weight && (
                         <span className="text-xs text-muted-foreground">
-                          = {((scores[criterion.id] * weight.poids_percent) / 100).toFixed(2)}
+                          = {((scores[criterion.id] / 4) * weight.poids_percent).toFixed(2)}
                         </span>
                       )}
                     </div>
