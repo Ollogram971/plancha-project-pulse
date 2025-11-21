@@ -26,15 +26,22 @@ export function CriterionScalesDialog({
   criterionId,
 }: CriterionScalesDialogProps) {
   const [open, setOpen] = useState(false);
+  const [hasCreatedScales, setHasCreatedScales] = useState(false);
   const { data: scales, isLoading, refetch } = useCriterionScales(criterionId);
   const updateScale = useUpdateCriterionScale();
   const createScales = useCreateCriterionScales();
   const [editedDescriptions, setEditedDescriptions] = useState<Record<string, string>>({});
   const { toast } = useToast();
 
+  // Réinitialiser le flag quand le criterionId change
+  useEffect(() => {
+    setHasCreatedScales(false);
+  }, [criterionId]);
+
   // Créer automatiquement les échelles par défaut si elles n'existent pas
   useEffect(() => {
-    if (open && !isLoading && criterionId && scales && scales.length === 0 && !createScales.isPending) {
+    if (open && !isLoading && criterionId && scales && scales.length === 0 && !createScales.isPending && !hasCreatedScales) {
+      setHasCreatedScales(true);
       const defaultScales = [
         { score_value: 0, description: "Non défini" },
         { score_value: 1, description: "Non défini" },
@@ -46,9 +53,10 @@ export function CriterionScalesDialog({
         refetch();
       }).catch((error) => {
         console.error("Error creating scales:", error);
+        setHasCreatedScales(false);
       });
     }
-  }, [open, isLoading, criterionId, scales, createScales.isPending]);
+  }, [open, isLoading, criterionId, scales, createScales.isPending, hasCreatedScales]);
 
   const handleSaveAll = async () => {
     const updates = Object.entries(editedDescriptions);
