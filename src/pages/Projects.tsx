@@ -74,7 +74,7 @@ export default function Projects() {
         filterPole === "all" || project.pole_id === filterPole;
 
       const matchesStatus =
-        filterStatus === "all" || 
+        filterStatus === "all" ? true :
         filterStatus === "attention" 
           ? (project.statut === "brouillon" || project.statut === "a_valider")
           : project.statut === filterStatus;
