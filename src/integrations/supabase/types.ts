@@ -170,6 +170,41 @@ export type Database = {
         }
         Relationships: []
       }
+      criterion_scales: {
+        Row: {
+          created_at: string
+          criterion_id: string
+          description: string
+          id: string
+          score_value: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          criterion_id: string
+          description: string
+          id?: string
+          score_value: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          criterion_id?: string
+          description?: string
+          id?: string
+          score_value?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "criterion_scales_criterion_id_fkey"
+            columns: ["criterion_id"]
+            isOneToOne: false
+            referencedRelation: "criteria"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       poles: {
         Row: {
           code: string
