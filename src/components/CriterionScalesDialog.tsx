@@ -32,7 +32,7 @@ export function CriterionScalesDialog({
 
   // Créer automatiquement les échelles par défaut si elles n'existent pas
   useEffect(() => {
-    if (open && !isLoading && criterionId && (!scales || scales.length === 0)) {
+    if (open && !isLoading && criterionId && scales && scales.length === 0 && !createScales.isPending) {
       const defaultScales = [
         { score_value: 0, description: "Non défini" },
         { score_value: 1, description: "Non défini" },
@@ -42,9 +42,11 @@ export function CriterionScalesDialog({
       ];
       createScales.mutateAsync({ criterionId, scales: defaultScales }).then(() => {
         refetch();
+      }).catch((error) => {
+        console.error("Error creating scales:", error);
       });
     }
-  }, [open, isLoading, criterionId, scales, createScales, refetch]);
+  }, [open, isLoading, criterionId, scales, createScales.isPending]);
 
   const handleSave = async (scaleId: string) => {
     const description = editedDescriptions[scaleId];
