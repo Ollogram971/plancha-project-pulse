@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Settings2 } from "lucide-react";
-import { useCriterionScales, useUpdateCriterionScale } from "@/hooks/useCriterionScales";
+import { useCriterionScales, useUpdateCriterionScale, useCreateCriterionScales } from "@/hooks/useCriterionScales";
 
 interface CriterionScalesDialogProps {
   criterionCode: string;
@@ -25,9 +25,26 @@ export function CriterionScalesDialog({
   criterionId,
 }: CriterionScalesDialogProps) {
   const [open, setOpen] = useState(false);
-  const { data: scales, isLoading } = useCriterionScales(criterionId);
+  const { data: scales, isLoading, refetch } = useCriterionScales(criterionId);
   const updateScale = useUpdateCriterionScale();
+  const createScales = useCreateCriterionScales();
   const [editedDescriptions, setEditedDescriptions] = useState<Record<string, string>>({});
+
+  // Créer automatiquement les échelles par défaut si elles n'existent pas
+  useEffect(() => {
+    if (open && !isLoading && criterionId && (!scales || scales.length === 0)) {
+      const defaultScales = [
+        { score_value: 0, description: "Non défini" },
+        { score_value: 1, description: "Non défini" },
+        { score_value: 2, description: "Non défini" },
+        { score_value: 3, description: "Non défini" },
+        { score_value: 4, description: "Non défini" },
+      ];
+      createScales.mutateAsync({ criterionId, scales: defaultScales }).then(() => {
+        refetch();
+      });
+    }
+  }, [open, isLoading, criterionId, scales, createScales, refetch]);
 
   const handleSave = async (scaleId: string) => {
     const description = editedDescriptions[scaleId];
@@ -57,7 +74,7 @@ export function CriterionScalesDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {isLoading ? (
+        {isLoading || createScales.isPending ? (
           <p className="text-sm text-muted-foreground">Chargement...</p>
         ) : scales && scales.length > 0 ? (
           <div className="space-y-6">
@@ -95,16 +112,7 @@ export function CriterionScalesDialog({
               </div>
             ))}
           </div>
-        ) : (
-          <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Aucune échelle d'évaluation n'est définie pour ce critère.
-            </p>
-            <p className="text-sm text-muted-foreground">
-              Les échelles par défaut seront créées lors de la prochaine mise à jour.
-            </p>
-          </div>
-        )}
+        ) : null}
       </DialogContent>
     </Dialog>
   );
