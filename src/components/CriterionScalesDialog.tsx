@@ -49,7 +49,7 @@ export function CriterionScalesDialog({
         { score_value: 3, description: "Non défini" },
         { score_value: 4, description: "Non défini" },
       ];
-      createScales.mutateAsync({ criterionId, scales: defaultScales }).then(() => {
+      createScales.mutateAsync({ criterionId, scales: defaultScales, silent: true }).then(() => {
         refetch();
       }).catch((error) => {
         console.error("Error creating scales:", error);
