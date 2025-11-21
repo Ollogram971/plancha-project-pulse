@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Settings2 } from "lucide-react";
 import { useCriterionScales, useUpdateCriterionScale, useCreateCriterionScales } from "@/hooks/useCriterionScales";
+import { useToast } from "@/hooks/use-toast";
 
 interface CriterionScalesDialogProps {
   criterionCode: string;
@@ -29,6 +30,7 @@ export function CriterionScalesDialog({
   const updateScale = useUpdateCriterionScale();
   const createScales = useCreateCriterionScales();
   const [editedDescriptions, setEditedDescriptions] = useState<Record<string, string>>({});
+  const { toast } = useToast();
 
   // Créer automatiquement les échelles par défaut si elles n'existent pas
   useEffect(() => {
@@ -57,9 +59,18 @@ export function CriterionScalesDialog({
         await updateScale.mutateAsync({ id: scaleId, description });
       }
       setEditedDescriptions({});
+      toast({
+        title: "Échelles mises à jour",
+        description: `Les échelles d'évaluation du critère "${criterionLabel}" ont été enregistrées avec succès.`,
+      });
       setOpen(false);
     } catch (error) {
       console.error("Error saving scales:", error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur est survenue lors de l'enregistrement des échelles.",
+        variant: "destructive",
+      });
     }
   };
 
