@@ -48,17 +48,22 @@ export function CriterionScalesDialog({
     }
   }, [open, isLoading, criterionId, scales, createScales.isPending]);
 
-  const handleSave = async (scaleId: string) => {
-    const description = editedDescriptions[scaleId];
-    if (description) {
-      await updateScale.mutateAsync({ id: scaleId, description });
-      setEditedDescriptions((prev) => {
-        const updated = { ...prev };
-        delete updated[scaleId];
-        return updated;
-      });
+  const handleSaveAll = async () => {
+    const updates = Object.entries(editedDescriptions);
+    if (updates.length === 0) return;
+
+    try {
+      for (const [scaleId, description] of updates) {
+        await updateScale.mutateAsync({ id: scaleId, description });
+      }
+      setEditedDescriptions({});
+      setOpen(false);
+    } catch (error) {
+      console.error("Error saving scales:", error);
     }
   };
+
+  const hasChanges = Object.keys(editedDescriptions).length > 0;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -79,41 +84,41 @@ export function CriterionScalesDialog({
         {isLoading || createScales.isPending ? (
           <p className="text-sm text-muted-foreground">Chargement...</p>
         ) : scales && scales.length > 0 ? (
-          <div className="space-y-6">
-            {scales.map((scale) => (
-              <div key={scale.id} className="space-y-2">
-                <Label htmlFor={`scale-${scale.id}`}>
-                  <span className="font-semibold">Score {scale.score_value}</span>
-                </Label>
-                <Textarea
-                  id={`scale-${scale.id}`}
-                  value={
-                    editedDescriptions[scale.id] !== undefined
-                      ? editedDescriptions[scale.id]
-                      : scale.description
-                  }
-                  onChange={(e) =>
-                    setEditedDescriptions((prev) => ({
-                      ...prev,
-                      [scale.id]: e.target.value,
-                    }))
-                  }
-                  rows={2}
-                  className="resize-none"
-                />
-                {editedDescriptions[scale.id] !== undefined &&
-                  editedDescriptions[scale.id] !== scale.description && (
-                    <Button
-                      size="sm"
-                      onClick={() => handleSave(scale.id)}
-                      disabled={updateScale.isPending}
-                    >
-                      Enregistrer
-                    </Button>
-                  )}
-              </div>
-            ))}
-          </div>
+          <>
+            <div className="space-y-6">
+              {scales.map((scale) => (
+                <div key={scale.id} className="space-y-2">
+                  <Label htmlFor={`scale-${scale.id}`}>
+                    <span className="font-semibold">Score {scale.score_value}</span>
+                  </Label>
+                  <Textarea
+                    id={`scale-${scale.id}`}
+                    value={
+                      editedDescriptions[scale.id] !== undefined
+                        ? editedDescriptions[scale.id]
+                        : scale.description
+                    }
+                    onChange={(e) =>
+                      setEditedDescriptions((prev) => ({
+                        ...prev,
+                        [scale.id]: e.target.value,
+                      }))
+                    }
+                    rows={2}
+                    className="resize-none"
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="flex justify-end pt-4 border-t">
+              <Button
+                onClick={handleSaveAll}
+                disabled={!hasChanges || updateScale.isPending}
+              >
+                {updateScale.isPending ? "Enregistrement..." : "Enregistrer"}
+              </Button>
+            </div>
+          </>
         ) : null}
       </DialogContent>
     </Dialog>
