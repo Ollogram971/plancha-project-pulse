@@ -68,9 +68,11 @@ export function useCreateCriterionScales() {
     mutationFn: async ({
       criterionId,
       scales,
+      silent = false,
     }: {
       criterionId: string;
       scales: Array<{ score_value: number; description: string }>;
+      silent?: boolean;
     }) => {
       const { data, error } = await supabase
         .from("criterion_scales")
@@ -83,14 +85,16 @@ export function useCreateCriterionScales() {
         .select();
 
       if (error) throw error;
-      return data;
+      return { data, silent };
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ["criterion-scales"] });
-      toast({
-        title: "Échelles créées",
-        description: "Les échelles d'évaluation ont été créées avec succès",
-      });
+      if (!result.silent) {
+        toast({
+          title: "Échelles créées",
+          description: "Les échelles d'évaluation ont été créées avec succès",
+        });
+      }
     },
     onError: (error: any) => {
       toast({
