@@ -29,9 +29,11 @@ export function useUpdateCriterionScale() {
     mutationFn: async ({
       id,
       description,
+      silent = false,
     }: {
       id: string;
       description: string;
+      silent?: boolean;
     }) => {
       const { data, error } = await supabase
         .from("criterion_scales")
@@ -41,14 +43,16 @@ export function useUpdateCriterionScale() {
         .single();
 
       if (error) throw error;
-      return data;
+      return { data, silent };
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (result, variables) => {
       queryClient.invalidateQueries({ queryKey: ["criterion-scales"] });
-      toast({
-        title: "Échelle mise à jour",
-        description: "La description a été modifiée avec succès",
-      });
+      if (!result.silent) {
+        toast({
+          title: "Échelle mise à jour",
+          description: "La description a été modifiée avec succès",
+        });
+      }
     },
     onError: (error: any) => {
       toast({

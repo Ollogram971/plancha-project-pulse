@@ -64,7 +64,7 @@ export function CriterionScalesDialog({
 
     try {
       for (const [scaleId, description] of updates) {
-        await updateScale.mutateAsync({ id: scaleId, description });
+        await updateScale.mutateAsync({ id: scaleId, description, silent: true });
       }
       setEditedDescriptions({});
       toast({
