@@ -13,9 +13,30 @@ import { fr } from "date-fns/locale/fr";
 import { useState, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { CriterionScalesDialog } from "@/components/CriterionScalesDialog";
 
 export default function Settings() {
   const { toast } = useToast();
+  
+  // Fetch criteria from database
+  const { data: criteria } = useQuery({
+    queryKey: ["criteria"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("criteria")
+        .select("*")
+        .order("ordre");
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Map criterion codes to IDs
+  const criterionMap = useMemo(() => {
+    if (!criteria) return {};
+    return Object.fromEntries(criteria.map((c) => [c.code, c.id]));
+  }, [criteria]);
   
   // State for weight values
   const [weights, setWeights] = useState({
@@ -139,7 +160,14 @@ export default function Settings() {
             
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="align">Alignement PNG</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="align">Alignement PNG</Label>
+                  <CriterionScalesDialog
+                    criterionCode="align"
+                    criterionLabel="Alignement PNG"
+                    criterionId={criterionMap.align}
+                  />
+                </div>
                 <div className="flex gap-2">
                   <Input 
                     id="align" 
@@ -153,7 +181,14 @@ export default function Settings() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="strategic">Intérêt stratégique</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="strategic">Intérêt stratégique</Label>
+                  <CriterionScalesDialog
+                    criterionCode="strategic"
+                    criterionLabel="Intérêt stratégique"
+                    criterionId={criterionMap.strategic}
+                  />
+                </div>
                 <div className="flex gap-2">
                   <Input 
                     id="strategic" 
@@ -167,7 +202,14 @@ export default function Settings() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="emblematic">Emblématique</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="emblematic">Emblématique</Label>
+                  <CriterionScalesDialog
+                    criterionCode="emblematic"
+                    criterionLabel="Emblématique"
+                    criterionId={criterionMap.emblematic}
+                  />
+                </div>
                 <div className="flex gap-2">
                   <Input 
                     id="emblematic" 
@@ -181,7 +223,14 @@ export default function Settings() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="structural">Structurant</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="structural">Structurant</Label>
+                  <CriterionScalesDialog
+                    criterionCode="structural"
+                    criterionLabel="Structurant"
+                    criterionId={criterionMap.structural}
+                  />
+                </div>
                 <div className="flex gap-2">
                   <Input 
                     id="structural" 
@@ -195,7 +244,14 @@ export default function Settings() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="progress">Avancement</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="progress">Avancement</Label>
+                  <CriterionScalesDialog
+                    criterionCode="progress"
+                    criterionLabel="Avancement"
+                    criterionId={criterionMap.progress}
+                  />
+                </div>
                 <div className="flex gap-2">
                   <Input 
                     id="progress" 
@@ -209,7 +265,14 @@ export default function Settings() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="financing">Financement</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="financing">Financement</Label>
+                  <CriterionScalesDialog
+                    criterionCode="financing"
+                    criterionLabel="Financement"
+                    criterionId={criterionMap.financing}
+                  />
+                </div>
                 <div className="flex gap-2">
                   <Input 
                     id="financing" 
@@ -223,7 +286,14 @@ export default function Settings() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="feasibility">Faisabilité</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="feasibility">Faisabilité</Label>
+                  <CriterionScalesDialog
+                    criterionCode="feasibility"
+                    criterionLabel="Faisabilité"
+                    criterionId={criterionMap.feasibility}
+                  />
+                </div>
                 <div className="flex gap-2">
                   <Input 
                     id="feasibility" 
