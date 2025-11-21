@@ -3,8 +3,10 @@ import { Badge } from "@/components/ui/badge";
 import { BarChart3, TrendingUp, FolderKanban, AlertCircle } from "lucide-react";
 import { useProjects } from "@/hooks/useProjects";
 import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const { data: projects, isLoading } = useProjects();
 
   const stats = useMemo(() => {
@@ -114,7 +116,10 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card 
+          className="cursor-pointer hover:bg-accent/50 transition-colors"
+          onClick={() => navigate('/projects?status=attention')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Attention Requise</CardTitle>
             <AlertCircle className="h-4 w-4 text-warning" />

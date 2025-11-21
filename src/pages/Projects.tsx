@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useMemo, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -45,12 +45,21 @@ const formatStatus = (status: string) => {
 
 export default function Projects() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [filterPole, setFilterPole] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
 
   const { data: projects, isLoading } = useProjects();
   const { data: poles } = usePoles();
+
+  // Initialize filter from URL params
+  useEffect(() => {
+    const statusParam = searchParams.get('status');
+    if (statusParam === 'attention') {
+      setFilterStatus('attention');
+    }
+  }, [searchParams]);
 
   const filteredProjects = useMemo(() => {
     if (!projects) return [];
@@ -65,7 +74,10 @@ export default function Projects() {
         filterPole === "all" || project.pole_id === filterPole;
 
       const matchesStatus =
-        filterStatus === "all" || project.statut === filterStatus;
+        filterStatus === "all" || 
+        filterStatus === "attention" 
+          ? (project.statut === "brouillon" || project.statut === "a_valider")
+          : project.statut === filterStatus;
 
       return matchesSearch && matchesPole && matchesStatus;
     });
@@ -129,6 +141,7 @@ export default function Projects() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous les statuts</SelectItem>
+                <SelectItem value="attention">Attention requise</SelectItem>
                 <SelectItem value="brouillon">Brouillon</SelectItem>
                 <SelectItem value="a_valider">À valider</SelectItem>
                 <SelectItem value="valide">Validé</SelectItem>
