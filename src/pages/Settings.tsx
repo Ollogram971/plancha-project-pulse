@@ -3,15 +3,59 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Settings2, Users, Weight, Database, FileText } from "lucide-react";
+import { Settings2, Users, Weight, Database, FileText, AlertCircle } from "lucide-react";
 import { UserManagementDialog } from "@/components/UserManagementDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns/format";
 import { fr } from "date-fns/locale/fr";
+import { useState, useMemo } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function Settings() {
+  const { toast } = useToast();
+  
+  // State for weight values
+  const [weights, setWeights] = useState({
+    align: 20,
+    strategic: 15,
+    emblematic: 10,
+    structural: 20,
+    progress: 10,
+    financing: 15,
+    feasibility: 10,
+  });
+
+  // Calculate total dynamically
+  const totalWeight = useMemo(() => {
+    return Object.values(weights).reduce((sum, value) => sum + value, 0);
+  }, [weights]);
+
+  // Check if total is valid
+  const isValidTotal = totalWeight === 100;
+
+  const handleWeightChange = (key: keyof typeof weights, value: string) => {
+    const numValue = parseInt(value) || 0;
+    setWeights(prev => ({ ...prev, [key]: numValue }));
+  };
+
+  const handleSaveWeights = () => {
+    if (!isValidTotal) {
+      toast({
+        title: "Erreur de validation",
+        description: `Le total des pondérations doit être égal à 100%. Actuellement: ${totalWeight}%`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    toast({
+      title: "Pondérations enregistrées",
+      description: "Les pondérations ont été mises à jour avec succès.",
+    });
+  };
   // Fetch audit logs
   const { data: auditLogs, isLoading } = useQuery({
     queryKey: ["audit-logs"],
@@ -83,66 +127,132 @@ export default function Settings() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {!isValidTotal && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Le total des pondérations doit être égal à 100% pour pouvoir enregistrer. 
+                  Actuellement: {totalWeight}%
+                </AlertDescription>
+              </Alert>
+            )}
+            
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="align">Alignement PNG</Label>
                 <div className="flex gap-2">
-                  <Input id="align" type="number" defaultValue={20} />
+                  <Input 
+                    id="align" 
+                    type="number" 
+                    value={weights.align}
+                    onChange={(e) => handleWeightChange('align', e.target.value)}
+                    min={0}
+                    max={100}
+                  />
                   <span className="flex items-center text-muted-foreground">%</span>
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="strategic">Intérêt stratégique</Label>
                 <div className="flex gap-2">
-                  <Input id="strategic" type="number" defaultValue={15} />
+                  <Input 
+                    id="strategic" 
+                    type="number" 
+                    value={weights.strategic}
+                    onChange={(e) => handleWeightChange('strategic', e.target.value)}
+                    min={0}
+                    max={100}
+                  />
                   <span className="flex items-center text-muted-foreground">%</span>
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="emblematic">Emblématique</Label>
                 <div className="flex gap-2">
-                  <Input id="emblematic" type="number" defaultValue={10} />
+                  <Input 
+                    id="emblematic" 
+                    type="number" 
+                    value={weights.emblematic}
+                    onChange={(e) => handleWeightChange('emblematic', e.target.value)}
+                    min={0}
+                    max={100}
+                  />
                   <span className="flex items-center text-muted-foreground">%</span>
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="structural">Structurant</Label>
                 <div className="flex gap-2">
-                  <Input id="structural" type="number" defaultValue={20} />
+                  <Input 
+                    id="structural" 
+                    type="number" 
+                    value={weights.structural}
+                    onChange={(e) => handleWeightChange('structural', e.target.value)}
+                    min={0}
+                    max={100}
+                  />
                   <span className="flex items-center text-muted-foreground">%</span>
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="progress">Avancement</Label>
                 <div className="flex gap-2">
-                  <Input id="progress" type="number" defaultValue={10} />
+                  <Input 
+                    id="progress" 
+                    type="number" 
+                    value={weights.progress}
+                    onChange={(e) => handleWeightChange('progress', e.target.value)}
+                    min={0}
+                    max={100}
+                  />
                   <span className="flex items-center text-muted-foreground">%</span>
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="financing">Financement</Label>
                 <div className="flex gap-2">
-                  <Input id="financing" type="number" defaultValue={15} />
+                  <Input 
+                    id="financing" 
+                    type="number" 
+                    value={weights.financing}
+                    onChange={(e) => handleWeightChange('financing', e.target.value)}
+                    min={0}
+                    max={100}
+                  />
                   <span className="flex items-center text-muted-foreground">%</span>
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="feasibility">Faisabilité</Label>
                 <div className="flex gap-2">
-                  <Input id="feasibility" type="number" defaultValue={10} />
+                  <Input 
+                    id="feasibility" 
+                    type="number" 
+                    value={weights.feasibility}
+                    onChange={(e) => handleWeightChange('feasibility', e.target.value)}
+                    min={0}
+                    max={100}
+                  />
                   <span className="flex items-center text-muted-foreground">%</span>
                 </div>
               </div>
               <div className="space-y-2 flex items-end">
-                <div className="flex-1 p-3 rounded-md bg-muted">
-                  <p className="text-sm font-medium">Total: 100%</p>
+                <div className={`flex-1 p-3 rounded-md ${isValidTotal ? 'bg-muted' : 'bg-destructive/10 border border-destructive'}`}>
+                  <p className={`text-sm font-medium ${isValidTotal ? '' : 'text-destructive'}`}>
+                    Total: {totalWeight}%
+                  </p>
                   <p className="text-xs text-muted-foreground">Profil: Standard PNG</p>
                 </div>
               </div>
             </div>
             <Separator />
             <div className="flex gap-2">
-              <Button>Enregistrer les pondérations</Button>
+              <Button 
+                onClick={handleSaveWeights}
+                disabled={!isValidTotal}
+              >
+                Enregistrer les pondérations
+              </Button>
               <Button variant="outline">Créer un nouveau profil</Button>
             </div>
           </CardContent>
