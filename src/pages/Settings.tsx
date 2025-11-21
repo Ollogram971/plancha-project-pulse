@@ -163,9 +163,9 @@ export default function Settings() {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="align">Alignement PNG</Label>
                   <CriterionScalesDialog
-                    criterionCode="align"
+                    criterionCode="alignement_png"
                     criterionLabel="Alignement PNG"
-                    criterionId={criterionMap.align}
+                    criterionId={criterionMap.alignement_png}
                   />
                 </div>
                 <div className="flex gap-2">
@@ -184,9 +184,9 @@ export default function Settings() {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="strategic">Intérêt stratégique</Label>
                   <CriterionScalesDialog
-                    criterionCode="strategic"
+                    criterionCode="interet_strategique"
                     criterionLabel="Intérêt stratégique"
-                    criterionId={criterionMap.strategic}
+                    criterionId={criterionMap.interet_strategique}
                   />
                 </div>
                 <div className="flex gap-2">
@@ -205,9 +205,9 @@ export default function Settings() {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="emblematic">Emblématique</Label>
                   <CriterionScalesDialog
-                    criterionCode="emblematic"
+                    criterionCode="emblematique"
                     criterionLabel="Emblématique"
-                    criterionId={criterionMap.emblematic}
+                    criterionId={criterionMap.emblematique}
                   />
                 </div>
                 <div className="flex gap-2">
@@ -226,9 +226,9 @@ export default function Settings() {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="structural">Structurant</Label>
                   <CriterionScalesDialog
-                    criterionCode="structural"
+                    criterionCode="structurant"
                     criterionLabel="Structurant"
-                    criterionId={criterionMap.structural}
+                    criterionId={criterionMap.structurant}
                   />
                 </div>
                 <div className="flex gap-2">
@@ -247,9 +247,9 @@ export default function Settings() {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="progress">Avancement</Label>
                   <CriterionScalesDialog
-                    criterionCode="progress"
+                    criterionCode="avancement"
                     criterionLabel="Avancement"
-                    criterionId={criterionMap.progress}
+                    criterionId={criterionMap.avancement}
                   />
                 </div>
                 <div className="flex gap-2">
@@ -268,9 +268,9 @@ export default function Settings() {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="financing">Financement</Label>
                   <CriterionScalesDialog
-                    criterionCode="financing"
+                    criterionCode="financement"
                     criterionLabel="Financement"
-                    criterionId={criterionMap.financing}
+                    criterionId={criterionMap.financement}
                   />
                 </div>
                 <div className="flex gap-2">
@@ -289,9 +289,9 @@ export default function Settings() {
                 <div className="flex items-center justify-between">
                   <Label htmlFor="feasibility">Faisabilité</Label>
                   <CriterionScalesDialog
-                    criterionCode="feasibility"
+                    criterionCode="faisabilite"
                     criterionLabel="Faisabilité"
-                    criterionId={criterionMap.feasibility}
+                    criterionId={criterionMap.faisabilite}
                   />
                 </div>
                 <div className="flex gap-2">
