@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,8 +7,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUpdateProject } from "@/hooks/useProjects";
 import { usePoles } from "@/hooks/usePoles";
+import { useProjectScores, useUpsertScore } from "@/hooks/useScores";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
 
 const projectUpdateSchema = z.object({
   titre: z.string()
@@ -102,9 +107,55 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
     date_fin: "",
   });
 
+  const [scores, setScores] = useState<Record<string, number>>({});
+
   const updateProject = useUpdateProject();
   const { data: poles } = usePoles();
   const { toast } = useToast();
+  const upsertScore = useUpsertScore();
+
+  // Fetch criteria and weights
+  const { data: criteria } = useQuery({
+    queryKey: ["criteria"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("criteria")
+        .select("*")
+        .order("ordre");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const { data: weights } = useQuery({
+    queryKey: ["weights"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("weights")
+        .select("*");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Fetch existing scores for this project
+  const { data: existingScores } = useProjectScores(project?.id);
+
+  // Calculate weighted score
+  const calculatedScore = useMemo(() => {
+    if (!criteria || !weights || Object.keys(scores).length === 0) return 0;
+
+    let total = 0;
+    criteria.forEach((criterion) => {
+      const score = scores[criterion.id] || 0;
+      const weight = weights.find((w) => w.criterion_id === criterion.id);
+      if (weight) {
+        total += (score * weight.poids_percent) / 100;
+      }
+    });
+
+    return total;
+  }, [criteria, weights, scores]);
 
   // Calcul automatique de l'avancement
   const calculateAvancement = (dateDebutStr: string, dateFinStr: string): string => {
@@ -148,6 +199,17 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
     }
   }, [project]);
 
+  // Initialize scores from existing data
+  useEffect(() => {
+    if (existingScores && existingScores.length > 0) {
+      const scoresMap: Record<string, number> = {};
+      existingScores.forEach((s) => {
+        scoresMap[s.criterion_id] = s.score_0_4;
+      });
+      setScores(scoresMap);
+    }
+  }, [existingScores]);
+
   // Recalculer l'avancement quand les dates changent
   useEffect(() => {
     if (formData.date_demarrage && formData.date_fin) {
@@ -171,9 +233,27 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
         date_previsionnelle_debut: validated.date_previsionnelle_debut || null,
         date_demarrage: validated.date_demarrage || null,
         date_fin: validated.date_fin || null,
+        score_total: calculatedScore,
       };
       
       await updateProject.mutateAsync({ id: project.id, data: updateData });
+
+      // Save all scores
+      const scorePromises = Object.entries(scores).map(([criterionId, score]) =>
+        upsertScore.mutateAsync({
+          projectId: project.id,
+          criterionId,
+          score,
+        })
+      );
+
+      await Promise.all(scorePromises);
+
+      toast({
+        title: "Projet mis à jour",
+        description: "Le projet et ses scores ont été enregistrés avec succès.",
+      });
+      
       onOpenChange(false);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -374,6 +454,65 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
               onChange={(e) => setFormData({ ...formData, risques: e.target.value })}
               rows={3}
             />
+          </div>
+
+          <Separator className="my-6" />
+
+          {/* Evaluation Section */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold">Évaluation du projet</h3>
+                <p className="text-sm text-muted-foreground">
+                  Chaque critère est noté de 0 à 4
+                </p>
+              </div>
+              <Badge variant="outline" className="text-lg px-4 py-2">
+                Score total: {calculatedScore.toFixed(2)} / 100
+              </Badge>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {criteria?.map((criterion) => {
+                const weight = weights?.find((w) => w.criterion_id === criterion.id);
+                return (
+                  <div key={criterion.id} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor={`score-${criterion.id}`}>
+                        {criterion.libelle}
+                        {weight && (
+                          <span className="text-xs text-muted-foreground ml-2">
+                            (Poids: {weight.poids_percent}%)
+                          </span>
+                        )}
+                      </Label>
+                      {scores[criterion.id] !== undefined && weight && (
+                        <span className="text-xs text-muted-foreground">
+                          = {((scores[criterion.id] * weight.poids_percent) / 100).toFixed(2)}
+                        </span>
+                      )}
+                    </div>
+                    <Select
+                      value={scores[criterion.id]?.toString() || ""}
+                      onValueChange={(value) =>
+                        setScores((prev) => ({ ...prev, [criterion.id]: parseInt(value) }))
+                      }
+                    >
+                      <SelectTrigger id={`score-${criterion.id}`}>
+                        <SelectValue placeholder="Sélectionner un score" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="0">0 - Non défini</SelectItem>
+                        <SelectItem value="1">1 - Faible</SelectItem>
+                        <SelectItem value="2">2 - Moyen</SelectItem>
+                        <SelectItem value="3">3 - Bon</SelectItem>
+                        <SelectItem value="4">4 - Excellent</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
           <div className="flex justify-end gap-2">
