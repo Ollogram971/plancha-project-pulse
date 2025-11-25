@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, FolderKanban, Settings, Menu, LogOut, HelpCircle, Download, MessageCircle, Info } from "lucide-react";
+import { LayoutDashboard, FolderKanban, Settings, Menu, LogOut, HelpCircle, Download, MessageCircle, Info, Weight } from "lucide-react";
 import spiraleLogo from "@/assets/spirale_rose.png";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -12,10 +12,18 @@ import {
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { AboutDialog } from "@/components/AboutDialog";
+import { useIsAdmin } from "@/hooks/useUserRole";
 
 const navigation = [
   { name: "Tableau de bord", href: "/", icon: LayoutDashboard },
   { name: "Projets", href: "/projects", icon: FolderKanban },
+];
+
+const adminNavigation = [
+  { name: "Pondérations", href: "/ponderations", icon: Weight },
+];
+
+const settingsNavigation = [
   { name: "Paramètres", href: "/settings", icon: Settings },
 ];
 
@@ -24,6 +32,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [aboutDialogOpen, setAboutDialogOpen] = useState(false);
   const { signOut, user } = useAuth();
+  const { isAdmin } = useIsAdmin();
+
+  // Build complete navigation based on user role
+  const completeNavigation = [
+    ...navigation,
+    ...(isAdmin ? adminNavigation : []),
+    ...settingsNavigation,
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -39,7 +55,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             </SheetTrigger>
             <SheetContent side="left" className="w-64">
               <nav className="flex flex-col gap-2 mt-8">
-                {navigation.map((item) => {
+                {completeNavigation.map((item) => {
                   const isActive = location.pathname === item.href;
                   return (
                     <Link
@@ -98,7 +114,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Desktop navigation */}
           <nav className="hidden lg:flex lg:gap-1 lg:ml-8 lg:items-center">
-            {navigation.map((item) => {
+            {completeNavigation.map((item) => {
               const isActive = location.pathname === item.href;
               return (
                 <Link
