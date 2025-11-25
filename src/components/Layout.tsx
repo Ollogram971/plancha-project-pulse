@@ -21,6 +21,7 @@ const navigation = [
 
 const adminNavigation = [
   { name: "Pondérations", href: "/ponderations", icon: Weight },
+  { name: "Thèmes", href: "/themes", icon: FolderKanban },
 ];
 
 const settingsNavigation = [

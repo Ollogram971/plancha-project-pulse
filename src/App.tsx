@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
 import Ponderations from "./pages/Ponderations";
+import Themes from "./pages/Themes";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -64,6 +65,18 @@ function App() {
                     <AdminProtectedRoute>
                       <Layout>
                         <Ponderations />
+                      </Layout>
+                    </AdminProtectedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/themes"
+                element={
+                  <ProtectedRoute>
+                    <AdminProtectedRoute>
+                      <Layout>
+                        <Themes />
                       </Layout>
                     </AdminProtectedRoute>
                   </ProtectedRoute>
