@@ -9,28 +9,28 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { data: projects, isLoading } = useProjects();
 
-  // Filter out archived projects
+  // Filter only projects "en cours" for dashboard
   const activeProjects = useMemo(() => {
     if (!projects) return [];
-    return projects.filter((p) => p.statut !== "archive");
+    return projects.filter((p) => p.statut === "en_cours");
   }, [projects]);
 
   const stats = useMemo(() => {
     if (!activeProjects || activeProjects.length === 0) return null;
+    if (!projects) return null;
 
-    const validatedCount = activeProjects.filter((p) => p.statut === "en_cours").length;
-    const needsAttention = activeProjects.filter((p) => p.statut === "a_valider").length;
+    // Count projects needing attention (a_valider) from all projects
+    const needsAttention = projects.filter((p) => p.statut === "a_valider").length;
     const avgScore =
       activeProjects.reduce((sum, p) => sum + (Number(p.score_total) || 0), 0) /
       activeProjects.length;
 
     return {
       totalProjects: activeProjects.length,
-      validatedProjects: validatedCount,
       averageScore: avgScore,
       projectsNeedingAttention: needsAttention,
     };
-  }, [activeProjects]);
+  }, [activeProjects, projects]);
 
   const topProjects = useMemo(() => {
     if (!activeProjects) return [];
@@ -87,7 +87,7 @@ export default function Dashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalProjects}</div>
             <p className="text-xs text-muted-foreground">
-              {stats.validatedProjects} validés
+              en cours
             </p>
           </CardContent>
         </Card>
@@ -107,15 +107,15 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Taux de Validation</CardTitle>
+            <CardTitle className="text-sm font-medium">Projets Actifs</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {Math.round((stats.validatedProjects / stats.totalProjects) * 100)}%
+              {stats.totalProjects}
             </div>
             <p className="text-xs text-muted-foreground">
-              +12% ce trimestre
+              projets en cours
             </p>
           </CardContent>
         </Card>
