@@ -16,7 +16,6 @@ export default function Dashboard() {
   }, [projects]);
 
   const stats = useMemo(() => {
-    if (!activeProjects || activeProjects.length === 0) return null;
     if (!projects) return null;
 
     // Count ALL projects regardless of status
@@ -26,9 +25,10 @@ export default function Dashboard() {
     const inProgress = activeProjects.length;
     const archived = projects.filter((p) => p.statut === "archive").length;
     
-    const avgScore =
-      activeProjects.reduce((sum, p) => sum + (Number(p.score_total) || 0), 0) /
-      activeProjects.length;
+    // Calculate average score only if there are active projects
+    const avgScore = activeProjects.length > 0
+      ? activeProjects.reduce((sum, p) => sum + (Number(p.score_total) || 0), 0) / activeProjects.length
+      : 0;
 
     return {
       allProjectsCount,
