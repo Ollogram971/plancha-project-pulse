@@ -5,10 +5,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import { AdminProtectedRoute } from "./components/AdminProtectedRoute";
 import { Layout } from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
 import Projects from "./pages/Projects";
 import ProjectDetail from "./pages/ProjectDetail";
+import Ponderations from "./pages/Ponderations";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -52,6 +54,18 @@ function App() {
                     <Layout>
                       <ProjectDetail />
                     </Layout>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/ponderations"
+                element={
+                  <ProtectedRoute>
+                    <AdminProtectedRoute>
+                      <Layout>
+                        <Ponderations />
+                      </Layout>
+                    </AdminProtectedRoute>
                   </ProtectedRoute>
                 }
               />
