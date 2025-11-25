@@ -653,12 +653,7 @@ export type Database = {
         | "recherche_financement"
         | "partiel"
         | "complet"
-      project_status:
-        | "brouillon"
-        | "a_valider"
-        | "valide"
-        | "archive"
-        | "en_cours"
+      project_status: "a_valider" | "en_cours" | "archive"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -794,13 +789,7 @@ export const Constants = {
         "partiel",
         "complet",
       ],
-      project_status: [
-        "brouillon",
-        "a_valider",
-        "valide",
-        "archive",
-        "en_cours",
-      ],
+      project_status: ["a_valider", "en_cours", "archive"],
     },
   },
 } as const

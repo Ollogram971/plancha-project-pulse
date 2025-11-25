@@ -11,16 +11,12 @@ import { ProjectEditDialog } from "@/components/ProjectEditDialog";
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case "valide":
-      return "success";
     case "en_cours":
       return "secondary";
     case "a_valider":
       return "warning";
-    case "brouillon":
-      return "default";
     case "archive":
-      return "destructive";
+      return "outline";
     default:
       return "default";
   }
@@ -28,9 +24,7 @@ const getStatusColor = (status: string) => {
 
 const formatStatus = (status: string) => {
   const statusMap: Record<string, string> = {
-    brouillon: "Brouillon",
     a_valider: "À valider",
-    valide: "Validé",
     en_cours: "En cours",
     archive: "Archivé",
   };
