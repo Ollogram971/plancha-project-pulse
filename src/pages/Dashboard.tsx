@@ -19,16 +19,23 @@ export default function Dashboard() {
     if (!activeProjects || activeProjects.length === 0) return null;
     if (!projects) return null;
 
-    // Count projects needing attention (a_valider) from all projects
+    // Count ALL projects regardless of status
+    const allProjectsCount = projects.length;
+    // Count projects by status
     const needsAttention = projects.filter((p) => p.statut === "a_valider").length;
+    const inProgress = activeProjects.length;
+    const archived = projects.filter((p) => p.statut === "archive").length;
+    
     const avgScore =
       activeProjects.reduce((sum, p) => sum + (Number(p.score_total) || 0), 0) /
       activeProjects.length;
 
     return {
-      totalProjects: activeProjects.length,
+      allProjectsCount,
+      activeProjects: inProgress,
       averageScore: avgScore,
       projectsNeedingAttention: needsAttention,
+      archivedProjects: archived,
     };
   }, [activeProjects, projects]);
 
@@ -85,9 +92,9 @@ export default function Dashboard() {
             <FolderKanban className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalProjects}</div>
+            <div className="text-2xl font-bold">{stats.allProjectsCount}</div>
             <p className="text-xs text-muted-foreground">
-              en cours
+              {stats.activeProjects} en cours · {stats.projectsNeedingAttention} à valider · {stats.archivedProjects} archivés
             </p>
           </CardContent>
         </Card>
@@ -112,7 +119,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {stats.totalProjects}
+              {stats.activeProjects}
             </div>
             <p className="text-xs text-muted-foreground">
               projets en cours
