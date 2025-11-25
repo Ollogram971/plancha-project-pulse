@@ -3,14 +3,14 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Settings2, Users, Weight, Database, FileText, AlertCircle, Trash2 } from "lucide-react";
+import { Settings2, Users, Weight, Database, FileText, AlertCircle, Trash2, Info } from "lucide-react";
 import { UserManagementDialog } from "@/components/UserManagementDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { format } from "date-fns/format";
 import { fr } from "date-fns/locale/fr";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CriterionScalesDialog } from "@/components/CriterionScalesDialog";
@@ -30,6 +30,61 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 export default function Settings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  
+  // Fetch app settings
+  const { data: appSettings } = useQuery({
+    queryKey: ["app-settings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("*")
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // State for app version
+  const [appVersion, setAppVersion] = useState("");
+  const [appYear, setAppYear] = useState("");
+
+  // Update local state when data is fetched
+  useEffect(() => {
+    if (appSettings) {
+      setAppVersion(appSettings.version);
+      setAppYear(appSettings.update_year.toString());
+    }
+  }, [appSettings]);
+
+  // Update app settings mutation
+  const updateAppSettingsMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("app_settings")
+        .update({
+          version: appVersion,
+          update_year: parseInt(appYear),
+        })
+        .eq("id", appSettings?.id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["app-settings"] });
+      toast({
+        title: "Version mise à jour",
+        description: "Les informations de version ont été mises à jour avec succès.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: "Impossible de mettre à jour la version. " + (error as Error).message,
+        variant: "destructive",
+      });
+    },
+  });
   
   // Fetch criteria from database
   const { data: criteria } = useQuery({
@@ -176,6 +231,52 @@ export default function Settings() {
 
       {/* Settings sections */}
       <div className="grid gap-6">
+        {/* App Version Settings */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Info className="h-5 w-5 text-primary" />
+              <CardTitle>Informations de l'application</CardTitle>
+            </div>
+            <CardDescription>
+              Version et date de mise à jour de l'application PLANCHA
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="version">Version</Label>
+                <Input 
+                  id="version" 
+                  type="text" 
+                  value={appVersion}
+                  onChange={(e) => setAppVersion(e.target.value)}
+                  placeholder="v1.0"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="year">Année de mise à jour</Label>
+                <Input 
+                  id="year" 
+                  type="number" 
+                  value={appYear}
+                  onChange={(e) => setAppYear(e.target.value)}
+                  placeholder="2025"
+                  min="2000"
+                  max="2100"
+                />
+              </div>
+            </div>
+            <Separator />
+            <Button 
+              onClick={() => updateAppSettingsMutation.mutate()}
+              disabled={!appVersion || !appYear || updateAppSettingsMutation.isPending}
+            >
+              {updateAppSettingsMutation.isPending ? "Enregistrement..." : "Enregistrer les modifications"}
+            </Button>
+          </CardContent>
+        </Card>
+
         {/* Criteria weights */}
         <Card>
           <CardHeader>

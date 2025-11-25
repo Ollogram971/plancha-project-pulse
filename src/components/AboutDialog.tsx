@@ -5,6 +5,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import spiraleLogo from "@/assets/spirale_rose.png";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface AboutDialogProps {
   open: boolean;
@@ -12,6 +14,20 @@ interface AboutDialogProps {
 }
 
 export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
+  // Fetch app settings
+  const { data: appSettings } = useQuery({
+    queryKey: ["app-settings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("*")
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -27,7 +43,7 @@ export function AboutDialog({ open, onOpenChange }: AboutDialogProps) {
             </h2>
             
             <p className="text-sm text-muted-foreground">
-              Version v1.0 - Année 2025
+              Version {appSettings?.version || 'v1.0'} - Année {appSettings?.update_year || 2025}
             </p>
             
             <div className="pt-4 border-t">
