@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { AboutDialog } from "@/components/AboutDialog";
 
 const navigation = [
   { name: "Tableau de bord", href: "/", icon: LayoutDashboard },
@@ -21,6 +22,7 @@ const navigation = [
 export function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [aboutDialogOpen, setAboutDialogOpen] = useState(false);
   const { signOut, user } = useAuth();
 
   return (
@@ -74,7 +76,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     FAQ
                   </button>
                   <button
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      setAboutDialogOpen(true);
+                    }}
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   >
                     <Info className="h-4 w-4" />
@@ -131,7 +136,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   <MessageCircle className="mr-2 h-4 w-4" />
                   FAQ
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setAboutDialogOpen(true)}>
                   <Info className="mr-2 h-4 w-4" />
                   A propos de Plancha
                 </DropdownMenuItem>
@@ -152,6 +157,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
 
       {/* Main content */}
       <main className="container px-4 sm:px-6 py-6">{children}</main>
+      
+      {/* About Dialog */}
+      <AboutDialog open={aboutDialogOpen} onOpenChange={setAboutDialogOpen} />
     </div>
   );
 }
