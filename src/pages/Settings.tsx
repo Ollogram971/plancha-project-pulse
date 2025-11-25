@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Settings2, Users, Weight, Database, FileText, AlertCircle } from "lucide-react";
+import { Settings2, Users, Weight, Database, FileText, AlertCircle, Trash2 } from "lucide-react";
 import { UserManagementDialog } from "@/components/UserManagementDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -14,9 +14,22 @@ import { useState, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CriterionScalesDialog } from "@/components/CriterionScalesDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export default function Settings() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   // Fetch criteria from database
   const { data: criteria } = useQuery({
@@ -77,6 +90,33 @@ export default function Settings() {
       description: "Les pondérations ont été mises à jour avec succès.",
     });
   };
+
+  // Clear audit logs mutation
+  const clearAuditMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from("audit_log")
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000"); // Delete all records
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["audit-logs"] });
+      toast({
+        title: "Audit vidé",
+        description: "Tous les enregistrements d'audit ont été supprimés.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: "Impossible de vider l'audit. " + (error as Error).message,
+        variant: "destructive",
+      });
+    },
+  });
+
   // Fetch audit logs
   const { data: auditLogs, isLoading } = useQuery({
     queryKey: ["audit-logs"],
@@ -375,13 +415,42 @@ export default function Settings() {
         {/* Audit Log */}
         <Card>
           <CardHeader>
-            <div className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-primary" />
-              <CardTitle>Audit</CardTitle>
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2">
+                  <FileText className="h-5 w-5 text-primary" />
+                  <CardTitle>Audit</CardTitle>
+                </div>
+                <CardDescription className="mt-1.5">
+                  Suivi des modifications et des actions effectuées dans l'application
+                </CardDescription>
+              </div>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="destructive" size="sm" disabled={!auditLogs || auditLogs.length === 0}>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Vider l'Audit
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Êtes-vous sûr ?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Cette action est irréversible. Tous les enregistrements d'audit seront définitivement supprimés.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Annuler</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => clearAuditMutation.mutate()}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Confirmer la suppression
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
-            <CardDescription>
-              Suivi des modifications et des actions effectuées dans l'application
-            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
