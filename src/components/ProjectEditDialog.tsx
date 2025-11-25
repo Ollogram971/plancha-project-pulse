@@ -26,7 +26,7 @@ const projectUpdateSchema = z.object({
     .optional()
     .or(z.literal("")),
   pole_id: z.string().uuid("Pôle invalide"),
-  statut: z.enum(['brouillon', 'a_valider', 'valide', 'en_cours', 'archive']),
+  statut: z.enum(['a_valider', 'en_cours', 'archive']),
   budget_total: z.string().optional(),
   budget_acquis: z.string().optional(),
   financement_statut: z.enum(['aucun', 'recherche_financement', 'partiel', 'complet']).optional(),
@@ -69,7 +69,7 @@ const projectUpdateSchema = z.object({
   path: ["date_demarrage"],
 });
 
-type ProjectStatus = 'brouillon' | 'a_valider' | 'valide' | 'en_cours' | 'archive';
+type ProjectStatus = 'a_valider' | 'en_cours' | 'archive';
 type FinancingStatus = 'aucun' | 'recherche_financement' | 'partiel' | 'complet';
 
 interface ProjectEditDialogProps {
@@ -96,7 +96,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
     titre: "",
     description: "",
     pole_id: "",
-    statut: "brouillon",
+    statut: "a_valider",
     budget_total: "",
     budget_acquis: "",
     financement_statut: "aucun",
@@ -186,7 +186,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
         titre: project.titre || "",
         description: project.description || "",
         pole_id: project.pole_id || "",
-        statut: project.statut || "brouillon",
+        statut: project.statut || "a_valider",
         budget_total: project.budget_total?.toString() || "",
         budget_acquis: project.budget_acquis?.toString() || "",
         financement_statut: project.financement_statut || "aucun",
@@ -319,9 +319,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="brouillon">Brouillon</SelectItem>
                   <SelectItem value="a_valider">À valider</SelectItem>
-                  <SelectItem value="valide">Validé</SelectItem>
                   <SelectItem value="en_cours">En cours</SelectItem>
                   <SelectItem value="archive">Archivé</SelectItem>
                 </SelectContent>

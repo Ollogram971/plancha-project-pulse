@@ -17,16 +17,12 @@ import { ProjectDialog } from "@/components/ProjectDialog";
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case "valide":
-      return "success";
     case "en_cours":
       return "secondary";
     case "a_valider":
       return "warning";
-    case "brouillon":
-      return "default";
     case "archive":
-      return "destructive";
+      return "outline";
     default:
       return "default";
   }
@@ -34,9 +30,7 @@ const getStatusColor = (status: string) => {
 
 const formatStatus = (status: string) => {
   const statusMap: Record<string, string> = {
-    brouillon: "Brouillon",
     a_valider: "À valider",
-    valide: "Validé",
     en_cours: "En cours",
     archive: "Archivé",
   };
@@ -76,7 +70,7 @@ export default function Projects() {
       const matchesStatus =
         filterStatus === "all" ? true :
         filterStatus === "attention" 
-          ? (project.statut === "brouillon" || project.statut === "a_valider")
+          ? project.statut === "a_valider"
           : project.statut === filterStatus;
 
       return matchesSearch && matchesPole && matchesStatus;
@@ -142,9 +136,7 @@ export default function Projects() {
               <SelectContent>
                 <SelectItem value="all">Tous les statuts</SelectItem>
                 <SelectItem value="attention">Attention requise</SelectItem>
-                <SelectItem value="brouillon">Brouillon</SelectItem>
                 <SelectItem value="a_valider">À valider</SelectItem>
-                <SelectItem value="valide">Validé</SelectItem>
                 <SelectItem value="en_cours">En cours</SelectItem>
                 <SelectItem value="archive">Archivé</SelectItem>
               </SelectContent>

@@ -18,10 +18,8 @@ export default function Dashboard() {
   const stats = useMemo(() => {
     if (!activeProjects || activeProjects.length === 0) return null;
 
-    const validatedCount = activeProjects.filter((p) => p.statut === "valide").length;
-    const needsAttention = activeProjects.filter(
-      (p) => p.statut === "a_valider" || p.statut === "brouillon"
-    ).length;
+    const validatedCount = activeProjects.filter((p) => p.statut === "en_cours").length;
+    const needsAttention = activeProjects.filter((p) => p.statut === "a_valider").length;
     const avgScore =
       activeProjects.reduce((sum, p) => sum + (Number(p.score_total) || 0), 0) /
       activeProjects.length;
