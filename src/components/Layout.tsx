@@ -1,8 +1,14 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, FolderKanban, Settings, Menu, LogOut } from "lucide-react";
+import { LayoutDashboard, FolderKanban, Settings, Menu, LogOut, HelpCircle, Download, MessageCircle, Info } from "lucide-react";
 import spiraleLogo from "@/assets/spirale_rose.png";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -49,6 +55,32 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     </Link>
                   );
                 })}
+                
+                {/* Menu Aide pour mobile */}
+                <div className="mt-4 pt-4 border-t">
+                  <div className="px-3 py-2 text-sm font-semibold text-foreground">Aide</div>
+                  <button
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  >
+                    <Download className="h-4 w-4" />
+                    Télécharger le mode d'emploi
+                  </button>
+                  <button
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  >
+                    <MessageCircle className="h-4 w-4" />
+                    FAQ
+                  </button>
+                  <button
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  >
+                    <Info className="h-4 w-4" />
+                    A propos de Plancha
+                  </button>
+                </div>
               </nav>
             </SheetContent>
           </Sheet>
@@ -60,7 +92,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </Link>
 
           {/* Desktop navigation */}
-          <nav className="hidden lg:flex lg:gap-1 lg:ml-8">
+          <nav className="hidden lg:flex lg:gap-1 lg:ml-8 lg:items-center">
             {navigation.map((item) => {
               const isActive = location.pathname === item.href;
               return (
@@ -78,6 +110,33 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </Link>
               );
             })}
+            
+            {/* Menu Aide */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                >
+                  <HelpCircle className="h-4 w-4" />
+                  Aide
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem>
+                  <Download className="mr-2 h-4 w-4" />
+                  Télécharger le mode d'emploi
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <MessageCircle className="mr-2 h-4 w-4" />
+                  FAQ
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Info className="mr-2 h-4 w-4" />
+                  A propos de Plancha
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
