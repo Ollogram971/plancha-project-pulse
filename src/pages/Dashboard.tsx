@@ -9,42 +9,48 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { data: projects, isLoading } = useProjects();
 
-  const stats = useMemo(() => {
-    if (!projects) return null;
+  // Filter out archived projects
+  const activeProjects = useMemo(() => {
+    if (!projects) return [];
+    return projects.filter((p) => p.statut !== "archive");
+  }, [projects]);
 
-    const validatedCount = projects.filter((p) => p.statut === "valide").length;
-    const needsAttention = projects.filter(
+  const stats = useMemo(() => {
+    if (!activeProjects || activeProjects.length === 0) return null;
+
+    const validatedCount = activeProjects.filter((p) => p.statut === "valide").length;
+    const needsAttention = activeProjects.filter(
       (p) => p.statut === "a_valider" || p.statut === "brouillon"
     ).length;
     const avgScore =
-      projects.reduce((sum, p) => sum + (Number(p.score_total) || 0), 0) /
-      projects.length;
+      activeProjects.reduce((sum, p) => sum + (Number(p.score_total) || 0), 0) /
+      activeProjects.length;
 
     return {
-      totalProjects: projects.length,
+      totalProjects: activeProjects.length,
       validatedProjects: validatedCount,
       averageScore: avgScore,
       projectsNeedingAttention: needsAttention,
     };
-  }, [projects]);
+  }, [activeProjects]);
 
   const topProjects = useMemo(() => {
-    if (!projects) return [];
-    return [...projects]
+    if (!activeProjects) return [];
+    return [...activeProjects]
       .sort((a, b) => (Number(b.score_total) || 0) - (Number(a.score_total) || 0))
       .slice(0, 5);
-  }, [projects]);
+  }, [activeProjects]);
 
   const poleDistribution = useMemo(() => {
-    if (!projects) return [];
+    if (!activeProjects || activeProjects.length === 0) return [];
 
     const poleCount = new Map<string, number>();
-    projects.forEach((project) => {
+    activeProjects.forEach((project) => {
       const pole = project.poles?.libelle || "Non défini";
       poleCount.set(pole, (poleCount.get(pole) || 0) + 1);
     });
 
-    const total = projects.length;
+    const total = activeProjects.length;
     return Array.from(poleCount.entries())
       .map(([pole, count]) => ({
         pole,
@@ -52,7 +58,7 @@ export default function Dashboard() {
         percentage: Math.round((count / total) * 100),
       }))
       .sort((a, b) => b.count - a.count);
-  }, [projects]);
+  }, [activeProjects]);
 
   if (isLoading) {
     return (
