@@ -19,6 +19,7 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -125,6 +126,33 @@ export default function Auth() {
     setLoading(false);
   };
 
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateInputs(false)) return;
+
+    setLoading(true);
+    const redirectUrl = `${window.location.origin}/auth`;
+    
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: redirectUrl,
+    });
+
+    if (error) {
+      toast({
+        variant: "destructive",
+        title: "Erreur",
+        description: error.message,
+      });
+    } else {
+      toast({
+        title: "Email envoyé",
+        description: "Vérifiez votre boîte mail pour réinitialiser votre mot de passe.",
+      });
+      setShowResetPassword(false);
+    }
+    setLoading(false);
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-forest-50 via-background to-moss-50 p-4">
       <Card className="w-full max-w-md">
@@ -143,11 +171,40 @@ export default function Auth() {
           </div>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Connexion</TabsTrigger>
-              <TabsTrigger value="signup">Inscription</TabsTrigger>
-            </TabsList>
+          {showResetPassword ? (
+            <div className="space-y-4">
+              <form onSubmit={handleResetPassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="reset-email">Email</Label>
+                  <Input
+                    id="reset-email"
+                    type="email"
+                    placeholder="votre@email.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? "Envoi..." : "Envoyer le lien de réinitialisation"}
+                </Button>
+              </form>
+              <Button
+                variant="ghost"
+                className="w-full"
+                onClick={() => setShowResetPassword(false)}
+                disabled={loading}
+              >
+                Retour à la connexion
+              </Button>
+            </div>
+          ) : (
+            <Tabs defaultValue="signin" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="signin">Connexion</TabsTrigger>
+                <TabsTrigger value="signup">Inscription</TabsTrigger>
+              </TabsList>
 
             <TabsContent value="signin" className="space-y-4">
               <form onSubmit={handleSignIn} className="space-y-4">
@@ -178,6 +235,14 @@ export default function Auth() {
                   {loading ? "Connexion..." : "Se connecter"}
                 </Button>
               </form>
+              <Button
+                variant="link"
+                className="w-full text-sm"
+                onClick={() => setShowResetPassword(true)}
+                disabled={loading}
+              >
+                Mot de passe oublié ?
+              </Button>
             </TabsContent>
 
             <TabsContent value="signup" className="space-y-4">
@@ -224,6 +289,7 @@ export default function Auth() {
               </form>
             </TabsContent>
           </Tabs>
+          )}
         </CardContent>
       </Card>
     </div>
