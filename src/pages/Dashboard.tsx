@@ -86,7 +86,10 @@ export default function Dashboard() {
 
       {/* Stats cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card 
+          className="cursor-pointer hover:bg-accent/50 transition-colors"
+          onClick={() => navigate('/projects')}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Projets</CardTitle>
             <FolderKanban className="h-4 w-4 text-muted-foreground" />
