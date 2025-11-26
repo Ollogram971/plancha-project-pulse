@@ -25,12 +25,14 @@ import {
 } from "@/components/ui/alert-dialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
+import { useAuth } from "@/contexts/AuthContext";
 
 const passwordSchema = z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères");
 
 export default function Settings() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { session } = useAuth();
   
   // Fetch app settings
   const { data: appSettings } = useQuery({
@@ -65,6 +67,11 @@ export default function Settings() {
   // Change password mutation
   const changePasswordMutation = useMutation({
     mutationFn: async (password: string) => {
+      // Vérifier que la session existe
+      if (!session) {
+        throw new Error("Session d'authentification manquante. Veuillez vous reconnecter.");
+      }
+
       const { error } = await supabase.auth.updateUser({
         password: password,
       });
@@ -89,6 +96,16 @@ export default function Settings() {
   });
 
   const handlePasswordChange = () => {
+    // Vérifier la session d'abord
+    if (!session) {
+      toast({
+        title: "Erreur",
+        description: "Session expirée. Veuillez vous reconnecter.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Validate passwords
     if (!newPassword || !confirmPassword) {
       toast({
