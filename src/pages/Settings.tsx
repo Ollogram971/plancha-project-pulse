@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { Settings2, Users, Database, FileText, Trash2, Info } from "lucide-react";
+import { Settings2, Users, Database, FileText, Trash2, Info, KeyRound } from "lucide-react";
 import { UserManagementDialog } from "@/components/UserManagementDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -24,6 +24,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { z } from "zod";
+
+const passwordSchema = z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères");
 
 export default function Settings() {
   const { toast } = useToast();
@@ -47,6 +50,10 @@ export default function Settings() {
   const [appVersion, setAppVersion] = useState("");
   const [appYear, setAppYear] = useState("");
 
+  // State for password change
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
   // Update local state when data is fetched
   useEffect(() => {
     if (appSettings) {
@@ -54,6 +61,68 @@ export default function Settings() {
       setAppYear(appSettings.update_year.toString());
     }
   }, [appSettings]);
+
+  // Change password mutation
+  const changePasswordMutation = useMutation({
+    mutationFn: async (password: string) => {
+      const { error } = await supabase.auth.updateUser({
+        password: password,
+      });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      setNewPassword("");
+      setConfirmPassword("");
+      toast({
+        title: "Mot de passe modifié",
+        description: "Votre mot de passe a été mis à jour avec succès.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier le mot de passe. " + (error as Error).message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handlePasswordChange = () => {
+    // Validate passwords
+    if (!newPassword || !confirmPassword) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez remplir tous les champs.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      passwordSchema.parse(newPassword);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        toast({
+          title: "Erreur de validation",
+          description: error.errors[0].message,
+          variant: "destructive",
+        });
+      }
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Erreur",
+        description: "Les mots de passe ne correspondent pas.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    changePasswordMutation.mutate(newPassword);
+  };
 
   // Update app settings mutation
   const updateAppSettingsMutation = useMutation({
@@ -211,6 +280,55 @@ export default function Settings() {
               disabled={!appVersion || !appYear || updateAppSettingsMutation.isPending}
             >
               {updateAppSettingsMutation.isPending ? "Enregistrement..." : "Enregistrer les modifications"}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Password Change */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <KeyRound className="h-5 w-5 text-primary" />
+              <CardTitle>Modifier le mot de passe</CardTitle>
+            </div>
+            <CardDescription>
+              Changez votre mot de passe de connexion
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="new-password">Nouveau mot de passe</Label>
+                <Input 
+                  id="new-password" 
+                  type="password" 
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="••••••••"
+                  minLength={6}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Minimum 6 caractères
+                </p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="confirm-password">Confirmer le mot de passe</Label>
+                <Input 
+                  id="confirm-password" 
+                  type="password" 
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  minLength={6}
+                />
+              </div>
+            </div>
+            <Separator />
+            <Button 
+              onClick={handlePasswordChange}
+              disabled={!newPassword || !confirmPassword || changePasswordMutation.isPending}
+            >
+              {changePasswordMutation.isPending ? "Modification..." : "Modifier le mot de passe"}
             </Button>
           </CardContent>
         </Card>
