@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
 import spiraleLogo from "@/assets/spirale_rose.png";
+import { useQuery } from "@tanstack/react-query";
 
 const emailSchema = z.string().email("Email invalide");
 const passwordSchema = z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères");
@@ -20,6 +21,20 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Fetch app settings
+  const { data: appSettings } = useQuery({
+    queryKey: ["app-settings"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("app_settings")
+        .select("*")
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+  });
 
   const validateInputs = (isSignup: boolean) => {
     try {
@@ -122,6 +137,9 @@ export default function Auth() {
             <CardDescription>
               Parc National de la Guadeloupe
             </CardDescription>
+            <p className="text-xs text-muted-foreground mt-2">
+              Version {appSettings?.version || 'v1.0'} - Année {appSettings?.update_year || 2025}
+            </p>
           </div>
         </CardHeader>
         <CardContent>
