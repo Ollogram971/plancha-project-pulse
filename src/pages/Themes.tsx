@@ -147,6 +147,20 @@ export default function Themes() {
       return;
     }
 
+    // Check for code uniqueness
+    const codeExists = themes.some(
+      theme => theme.code === newTheme.code && theme.id !== editingTheme?.id
+    );
+
+    if (codeExists) {
+      toast({
+        title: "Erreur",
+        description: "Ce code existe déjà. Veuillez choisir un code unique.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     saveMutation.mutate({
       id: editingTheme?.id,
       code: newTheme.code,
