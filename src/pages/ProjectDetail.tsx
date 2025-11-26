@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ProjectEditDialog } from "@/components/ProjectEditDialog";
+import { useProjectScores } from "@/hooks/useScores";
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -53,6 +54,51 @@ export default function ProjectDetail() {
       return data;
     },
   });
+
+  const { data: projectScores, isLoading: scoresLoading } = useProjectScores(id);
+
+  const { data: activeWeights } = useQuery({
+    queryKey: ["active-weights"],
+    queryFn: async () => {
+      // Get active weight profile
+      const { data: activeProfile } = await supabase
+        .from("weight_profiles")
+        .select("id")
+        .eq("actif", true)
+        .maybeSingle();
+
+      if (!activeProfile) return [];
+
+      // Get weights for active profile
+      const { data, error } = await supabase
+        .from("weights")
+        .select(`
+          *,
+          criteria:criterion_id (
+            id,
+            code,
+            libelle,
+            ordre
+          )
+        `)
+        .eq("profile_id", activeProfile.id)
+        .order("criteria(ordre)");
+
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const getScoreLabel = (score: number) => {
+    switch (score) {
+      case 0: return "0 - Non applicable";
+      case 1: return "1 - Faible";
+      case 2: return "2 - Moyen";
+      case 3: return "3 - Bon";
+      case 4: return "4 - Excellent";
+      default: return "-";
+    }
+  };
 
   if (isLoading) {
     return (
@@ -210,6 +256,55 @@ export default function ProjectDetail() {
           </CardContent>
         </Card>
       </div>
+
+      {activeWeights && activeWeights.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-start justify-between">
+              <div>
+                <CardTitle>Évaluation du projet</CardTitle>
+                <p className="text-sm text-muted-foreground mt-1">Chaque critère est noté de 0 à 4</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-medium text-muted-foreground">Score total</p>
+                <p className="text-2xl font-bold">
+                  {project.score_total ? project.score_total.toFixed(2) : "0.00"} / 100
+                </p>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-2">
+              {activeWeights.map((weight: any) => {
+                const criterionScore = projectScores?.find(
+                  (s: any) => s.criterion_id === weight.criterion_id
+                );
+                const scoreValue = criterionScore?.score_0_4 ?? 0;
+                const weightedScore = (scoreValue * Number(weight.poids_percent)) / 100;
+
+                return (
+                  <div key={weight.id} className="space-y-2 p-4 rounded-lg border bg-card">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{weight.criteria?.libelle}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Poids: {Number(weight.poids_percent).toFixed(0)}%
+                        </p>
+                      </div>
+                      <p className="text-xs font-medium text-muted-foreground whitespace-nowrap ml-2">
+                        = {(scoreValue * 25).toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <p className="text-muted-foreground">{getScoreLabel(scoreValue)}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {(project.risques || project.partenaires || project.liens) && (
         <Card>
