@@ -167,7 +167,11 @@ export default function Dashboard() {
                 </p>
               ) : (
                 topProjects.map((project, index) => (
-                  <div key={project.id} className="flex items-start gap-4">
+                  <div 
+                    key={project.id} 
+                    className="flex items-start gap-4 p-3 rounded-lg hover:bg-accent/50 transition-colors cursor-pointer"
+                    onClick={() => navigate(`/projects/${project.id}`)}
+                  >
                     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold text-sm">
                       {index + 1}
                     </div>
