@@ -52,6 +52,8 @@ export default function Projects() {
     const statusParam = searchParams.get('status');
     if (statusParam === 'attention') {
       setFilterStatus('attention');
+    } else if (statusParam === 'en_cours') {
+      setFilterStatus('en_cours');
     }
   }, [searchParams]);
 
