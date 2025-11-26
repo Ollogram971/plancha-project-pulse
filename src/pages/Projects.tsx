@@ -61,10 +61,15 @@ export default function Projects() {
     if (!projects) return [];
 
     return projects.filter((project) => {
+      const formattedDate = project.date_demarrage 
+        ? new Date(project.date_demarrage).toLocaleDateString('fr-FR')
+        : '';
+      
       const matchesSearch =
         searchQuery === "" ||
         project.titre.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        project.code.toLowerCase().includes(searchQuery.toLowerCase());
+        project.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        formattedDate.includes(searchQuery);
 
       const matchesPole =
         filterPole === "all" || project.pole_id === filterPole;
@@ -111,7 +116,7 @@ export default function Projects() {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder="Rechercher par code, titre..."
+                  placeholder="Rechercher par code, titre, date..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
