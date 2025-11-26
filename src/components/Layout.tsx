@@ -13,6 +13,8 @@ import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { AboutDialog } from "@/components/AboutDialog";
 import { useIsAdmin } from "@/hooks/useUserRole";
+import { PasswordChangeDialog } from "@/components/PasswordChangeDialog";
+import { User, KeyRound } from "lucide-react";
 
 const navigation = [
   { name: "Tableau de bord", href: "/", icon: LayoutDashboard },
@@ -32,6 +34,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [aboutDialogOpen, setAboutDialogOpen] = useState(false);
+  const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const { signOut, user } = useAuth();
   const { isAdmin } = useIsAdmin();
 
@@ -162,10 +165,25 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="ml-auto flex items-center gap-2">
-            <span className="text-sm text-muted-foreground hidden sm:inline">
-              {user?.email}
-            </span>
-            <Button variant="ghost" size="icon" onClick={signOut} title="Se déconnecter">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="gap-2 hidden sm:flex">
+                  <User className="h-4 w-4" />
+                  <span className="text-sm">{user?.email}</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setPasswordDialogOpen(true)}>
+                  <KeyRound className="mr-2 h-4 w-4" />
+                  Modifier le mot de passe
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={signOut}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Se déconnecter
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button variant="ghost" size="icon" onClick={signOut} title="Se déconnecter" className="sm:hidden">
               <LogOut className="h-4 w-4" />
             </Button>
           </div>
@@ -177,6 +195,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
       
       {/* About Dialog */}
       <AboutDialog open={aboutDialogOpen} onOpenChange={setAboutDialogOpen} />
+      
+      {/* Password Change Dialog */}
+      <PasswordChangeDialog open={passwordDialogOpen} onOpenChange={setPasswordDialogOpen} />
     </div>
   );
 }
