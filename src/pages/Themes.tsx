@@ -6,11 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Plus, Trash2, Edit2, Check, ChevronsUpDown } from "lucide-react";
+import { Plus, Trash2, Edit2, ChevronDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
@@ -28,7 +27,7 @@ export default function Themes() {
   const [isAddThemeOpen, setIsAddThemeOpen] = useState(false);
   const [editingTheme, setEditingTheme] = useState<Theme | null>(null);
   const [newTheme, setNewTheme] = useState({ code: "", libelle: "", famille: "" });
-  const [openFamilleCombobox, setOpenFamilleCombobox] = useState(false);
+  const [showFamilleSuggestions, setShowFamilleSuggestions] = useState(false);
 
   // Fetch all themes
   const { data: themes = [], isLoading } = useQuery({
@@ -166,14 +165,19 @@ export default function Themes() {
     setIsAddThemeOpen(true);
   };
 
-  const handleFamilleChange = (famille: string) => {
-    const isExistingFamily = uniqueFamilies.includes(famille);
+  const handleFamilleChange = (value: string) => {
+    const isExistingFamily = uniqueFamilies.includes(value);
     setNewTheme({
       ...newTheme,
-      famille,
+      famille: value,
       // Only auto-generate code if it's an existing family and not editing
-      code: editingTheme ? newTheme.code : (isExistingFamily ? generateCode(famille) : ""),
+      code: editingTheme ? newTheme.code : (isExistingFamily ? generateCode(value) : ""),
     });
+  };
+
+  const handleFamilleSelect = (famille: string) => {
+    handleFamilleChange(famille);
+    setShowFamilleSuggestions(false);
   };
 
   const isFormValid = newTheme.code && newTheme.libelle && newTheme.famille;
@@ -281,55 +285,50 @@ export default function Themes() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
-            <div>
+            <div className="relative">
               <Label htmlFor="famille">Famille *</Label>
-              <Popover open={openFamilleCombobox} onOpenChange={setOpenFamilleCombobox}>
+              <Popover open={showFamilleSuggestions} onOpenChange={setShowFamilleSuggestions}>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    role="combobox"
-                    aria-expanded={openFamilleCombobox}
-                    className="w-full justify-between"
-                  >
-                    {newTheme.famille || "Sélectionnez ou saisissez une famille"}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-full p-0">
-                  <Command>
-                    <CommandInput 
-                      placeholder="Rechercher ou créer une famille..." 
+                  <div className="relative">
+                    <Input
+                      id="famille"
                       value={newTheme.famille}
-                      onValueChange={handleFamilleChange}
+                      onChange={(e) => handleFamilleChange(e.target.value)}
+                      onFocus={() => setShowFamilleSuggestions(true)}
+                      placeholder="Saisissez ou sélectionnez une famille"
+                      className="pr-8"
                     />
-                    <CommandList>
-                      <CommandEmpty>
-                        Appuyez sur Entrée pour créer "{newTheme.famille}"
-                      </CommandEmpty>
-                      <CommandGroup>
-                        {uniqueFamilies.map((famille) => (
-                          <CommandItem
-                            key={famille}
-                            value={famille}
-                            onSelect={(currentValue) => {
-                              handleFamilleChange(currentValue);
-                              setOpenFamilleCombobox(false);
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                newTheme.famille === famille ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                            {famille}
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
+                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-50" />
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                  <div className="max-h-[200px] overflow-y-auto">
+                    {uniqueFamilies.length > 0 ? (
+                      <div className="py-1">
+                        {uniqueFamilies
+                          .filter(f => f.toLowerCase().includes(newTheme.famille.toLowerCase()))
+                          .map((famille) => (
+                            <button
+                              key={famille}
+                              type="button"
+                              onClick={() => handleFamilleSelect(famille)}
+                              className="w-full text-left px-3 py-2 text-sm hover:bg-accent hover:text-accent-foreground cursor-pointer"
+                            >
+                              {famille}
+                            </button>
+                          ))}
+                      </div>
+                    ) : (
+                      <div className="py-6 text-center text-sm text-muted-foreground">
+                        Aucune famille existante
+                      </div>
+                    )}
+                  </div>
                 </PopoverContent>
               </Popover>
+              <p className="text-xs text-muted-foreground mt-1">
+                Saisissez une nouvelle famille ou sélectionnez-en une existante
+              </p>
             </div>
             <div>
               <Label htmlFor="code">Code *</Label>
