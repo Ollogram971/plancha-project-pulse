@@ -43,7 +43,7 @@ export default function Dashboard() {
     if (!activeProjects) return [];
     return [...activeProjects]
       .sort((a, b) => (Number(b.score_total) || 0) - (Number(a.score_total) || 0))
-      .slice(0, 5);
+      .slice(0, 10);
   }, [activeProjects]);
 
   const poleDistribution = useMemo(() => {
@@ -154,7 +154,7 @@ export default function Dashboard() {
         {/* Top projects */}
         <Card>
           <CardHeader>
-            <CardTitle>Top 5 Projets (Score PLANCHA)</CardTitle>
+            <CardTitle>Top 10 Projets (Score PLANCHA)</CardTitle>
             <CardDescription>
               Classement des projets selon leur score pondéré
             </CardDescription>
