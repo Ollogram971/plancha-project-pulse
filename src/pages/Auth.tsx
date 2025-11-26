@@ -6,9 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trees } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
+import spiraleLogo from "@/assets/spirale_rose.png";
 
 const emailSchema = z.string().email("Email invalide");
 const passwordSchema = z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères");
@@ -115,7 +115,7 @@ export default function Auth() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-4 text-center">
           <div className="flex justify-center">
-            <Trees className="h-12 w-12 text-primary" />
+            <img src={spiraleLogo} alt="PLANCHA Logo" className="h-16 w-16" />
           </div>
           <div>
             <CardTitle className="text-2xl">PLANCHA Projets</CardTitle>
