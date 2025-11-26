@@ -91,7 +91,7 @@ export default function ProjectDetail() {
           <p className="text-muted-foreground mt-2">{project.code}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant={getStatusColor(project.statut) as any}>
+          <Badge variant={getStatusColor(project.statut) as any} className="whitespace-nowrap">
             {formatStatus(project.statut)}
           </Badge>
           <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
