@@ -42,7 +42,19 @@ export default function Dashboard() {
   const topProjects = useMemo(() => {
     if (!activeProjects) return [];
     return [...activeProjects]
-      .sort((a, b) => (Number(b.score_total) || 0) - (Number(a.score_total) || 0))
+      .sort((a, b) => {
+        // Sort by score first (descending)
+        const scoreDiff = (Number(b.score_total) || 0) - (Number(a.score_total) || 0);
+        
+        // If scores are equal, sort by date_demarrage (most recent first)
+        if (scoreDiff === 0) {
+          const dateA = a.date_demarrage ? new Date(a.date_demarrage).getTime() : 0;
+          const dateB = b.date_demarrage ? new Date(b.date_demarrage).getTime() : 0;
+          return dateB - dateA;
+        }
+        
+        return scoreDiff;
+      })
       .slice(0, 10);
   }, [activeProjects]);
 
