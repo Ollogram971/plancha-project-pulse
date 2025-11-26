@@ -10,6 +10,7 @@ import { Plus, Trash2, Edit2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Theme {
   id: string;
@@ -50,6 +51,32 @@ export default function Themes() {
     acc[famille].push(theme);
     return acc;
   }, {} as Record<string, Theme[]>);
+
+  // Get unique families for the select dropdown
+  const uniqueFamilies = Array.from(new Set(themes.map(t => t.famille).filter(Boolean))) as string[];
+
+  // Generate code based on selected family
+  const generateCode = (famille: string) => {
+    if (!famille) return "";
+    
+    // Extract prefix from famille (first 3 letters uppercase)
+    const prefix = famille.substring(0, 3).toUpperCase();
+    
+    // Find all themes in this family
+    const familyThemes = themes.filter(t => t.famille === famille);
+    
+    // Extract numbers from existing codes and find max
+    const existingNumbers = familyThemes
+      .map(t => {
+        const match = t.code.match(/-(\d+)$/);
+        return match ? parseInt(match[1]) : 0;
+      })
+      .filter(n => n > 0);
+    
+    const nextNumber = existingNumbers.length > 0 ? Math.max(...existingNumbers) + 1 : 1;
+    
+    return `${prefix}-${String(nextNumber).padStart(3, '0')}`;
+  };
 
   // Add or update theme mutation
   const saveMutation = useMutation({
@@ -135,6 +162,16 @@ export default function Themes() {
     });
     setIsAddThemeOpen(true);
   };
+
+  const handleFamilleChange = (famille: string) => {
+    setNewTheme({
+      ...newTheme,
+      famille,
+      code: editingTheme ? newTheme.code : generateCode(famille),
+    });
+  };
+
+  const isFormValid = newTheme.code && newTheme.libelle && newTheme.famille;
 
   const handleDelete = (themeId: string) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce thème ?")) {
@@ -241,12 +278,18 @@ export default function Themes() {
           <div className="space-y-4">
             <div>
               <Label htmlFor="famille">Famille *</Label>
-              <Input
-                id="famille"
-                value={newTheme.famille}
-                onChange={(e) => setNewTheme({ ...newTheme, famille: e.target.value })}
-                placeholder="Ex: Biodiversité et Milieux Naturels"
-              />
+              <Select value={newTheme.famille} onValueChange={handleFamilleChange}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sélectionnez une famille" />
+                </SelectTrigger>
+                <SelectContent>
+                  {uniqueFamilies.map((famille) => (
+                    <SelectItem key={famille} value={famille}>
+                      {famille}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
               <Label htmlFor="code">Code *</Label>
@@ -271,7 +314,7 @@ export default function Themes() {
             <Button variant="outline" onClick={() => setIsAddThemeOpen(false)}>
               Annuler
             </Button>
-            <Button onClick={handleSave} disabled={saveMutation.isPending}>
+            <Button onClick={handleSave} disabled={saveMutation.isPending || !isFormValid}>
               {saveMutation.isPending ? "Enregistrement..." : "Enregistrer"}
             </Button>
           </DialogFooter>
