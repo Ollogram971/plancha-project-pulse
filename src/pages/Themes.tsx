@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Plus, Trash2, Edit2 } from "lucide-react";
+import { Plus, Trash2, Edit2, Check, ChevronsUpDown } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 interface Theme {
   id: string;
@@ -26,6 +28,7 @@ export default function Themes() {
   const [isAddThemeOpen, setIsAddThemeOpen] = useState(false);
   const [editingTheme, setEditingTheme] = useState<Theme | null>(null);
   const [newTheme, setNewTheme] = useState({ code: "", libelle: "", famille: "" });
+  const [openFamilleCombobox, setOpenFamilleCombobox] = useState(false);
 
   // Fetch all themes
   const { data: themes = [], isLoading } = useQuery({
@@ -164,10 +167,12 @@ export default function Themes() {
   };
 
   const handleFamilleChange = (famille: string) => {
+    const isExistingFamily = uniqueFamilies.includes(famille);
     setNewTheme({
       ...newTheme,
       famille,
-      code: editingTheme ? newTheme.code : generateCode(famille),
+      // Only auto-generate code if it's an existing family and not editing
+      code: editingTheme ? newTheme.code : (isExistingFamily ? generateCode(famille) : ""),
     });
   };
 
@@ -278,18 +283,53 @@ export default function Themes() {
           <div className="space-y-4">
             <div>
               <Label htmlFor="famille">Famille *</Label>
-              <Select value={newTheme.famille} onValueChange={handleFamilleChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sélectionnez une famille" />
-                </SelectTrigger>
-                <SelectContent>
-                  {uniqueFamilies.map((famille) => (
-                    <SelectItem key={famille} value={famille}>
-                      {famille}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={openFamilleCombobox} onOpenChange={setOpenFamilleCombobox}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={openFamilleCombobox}
+                    className="w-full justify-between"
+                  >
+                    {newTheme.famille || "Sélectionnez ou saisissez une famille"}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0">
+                  <Command>
+                    <CommandInput 
+                      placeholder="Rechercher ou créer une famille..." 
+                      value={newTheme.famille}
+                      onValueChange={handleFamilleChange}
+                    />
+                    <CommandList>
+                      <CommandEmpty>
+                        Appuyez sur Entrée pour créer "{newTheme.famille}"
+                      </CommandEmpty>
+                      <CommandGroup>
+                        {uniqueFamilies.map((famille) => (
+                          <CommandItem
+                            key={famille}
+                            value={famille}
+                            onSelect={(currentValue) => {
+                              handleFamilleChange(currentValue);
+                              setOpenFamilleCombobox(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                newTheme.famille === famille ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            {famille}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
             <div>
               <Label htmlFor="code">Code *</Label>
