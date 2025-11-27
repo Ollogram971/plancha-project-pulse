@@ -55,6 +55,11 @@ export default function Projects() {
     } else if (statusParam === 'en_cours') {
       setFilterStatus('en_cours');
     }
+    
+    const poleParam = searchParams.get('pole');
+    if (poleParam) {
+      setFilterPole(poleParam);
+    }
   }, [searchParams]);
 
   const filteredProjects = useMemo(() => {
