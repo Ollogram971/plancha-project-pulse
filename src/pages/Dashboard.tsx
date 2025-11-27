@@ -61,16 +61,23 @@ export default function Dashboard() {
   const poleDistribution = useMemo(() => {
     if (!activeProjects || activeProjects.length === 0) return [];
 
-    const poleCount = new Map<string, number>();
+    const poleCount = new Map<string, { count: number; poleId: string }>();
     activeProjects.forEach((project) => {
       const pole = project.poles?.libelle || "Non défini";
-      poleCount.set(pole, (poleCount.get(pole) || 0) + 1);
+      const poleId = project.pole_id || "";
+      const current = poleCount.get(pole);
+      if (current) {
+        poleCount.set(pole, { count: current.count + 1, poleId: current.poleId });
+      } else {
+        poleCount.set(pole, { count: 1, poleId });
+      }
     });
 
     const total = activeProjects.length;
     return Array.from(poleCount.entries())
-      .map(([pole, count]) => ({
+      .map(([pole, { count, poleId }]) => ({
         pole,
+        poleId,
         count,
         percentage: Math.round((count / total) * 100),
       }))
@@ -223,7 +230,12 @@ export default function Dashboard() {
                 poleDistribution.map((item) => (
                 <div key={item.pole} className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium">{item.pole}</span>
+                    <span 
+                      className="font-medium hover:text-primary cursor-pointer transition-colors"
+                      onClick={() => navigate(`/projects?pole=${item.poleId}`)}
+                    >
+                      {item.pole}
+                    </span>
                     <span className="text-muted-foreground">
                       {item.count} ({item.percentage}%)
                     </span>
