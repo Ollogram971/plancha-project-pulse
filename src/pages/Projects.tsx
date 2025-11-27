@@ -18,11 +18,11 @@ import { ProjectDialog } from "@/components/ProjectDialog";
 const getStatusColor = (status: string) => {
   switch (status) {
     case "en_cours":
-      return "secondary";
+      return "default";
     case "a_valider":
       return "warning";
     case "archive":
-      return "outline";
+      return "secondary";
     default:
       return "default";
   }
