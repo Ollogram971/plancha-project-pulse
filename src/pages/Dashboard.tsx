@@ -210,7 +210,7 @@ export default function Dashboard() {
           <CardHeader>
             <CardTitle>Répartition par Pôle</CardTitle>
             <CardDescription>
-              Distribution des projets par pôle d'activité
+              Distribution des projets par domaine d'activité
             </CardDescription>
           </CardHeader>
           <CardContent>
