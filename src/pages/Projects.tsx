@@ -125,10 +125,10 @@ export default function Projects() {
             </div>
             <Select value={filterPole} onValueChange={setFilterPole}>
               <SelectTrigger>
-                <SelectValue placeholder="Tous les pôles" />
+                <SelectValue placeholder="Tous les Pôles/Services" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tous les pôles</SelectItem>
+                <SelectItem value="all">Tous les Pôles/Services</SelectItem>
                 {poles?.map((pole) => (
                   <SelectItem key={pole.id} value={pole.id}>
                     {pole.libelle}
