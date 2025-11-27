@@ -41,8 +41,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   // Build complete navigation based on user role
   const completeNavigation = [
     ...navigation,
-    ...(isAdmin ? adminNavigation : []),
-    ...settingsNavigation,
+    ...(isAdmin ? [...adminNavigation, ...settingsNavigation] : []),
   ];
 
   return (
