@@ -13,11 +13,11 @@ import { useProjectScores } from "@/hooks/useScores";
 const getStatusColor = (status: string) => {
   switch (status) {
     case "en_cours":
-      return "default";
+      return "secondary";
     case "a_valider":
       return "warning";
     case "archive":
-      return "secondary";
+      return "muted";
     default:
       return "default";
   }
