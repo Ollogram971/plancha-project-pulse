@@ -154,7 +154,7 @@ export default function ProjectDetail() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Pôle</p>
+              <p className="text-sm font-medium text-muted-foreground">Pôle/Service</p>
               <p className="text-base">{project.poles?.libelle || "N/A"}</p>
             </div>
             {project.description && (
