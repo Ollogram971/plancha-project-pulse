@@ -205,12 +205,12 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Domain distribution */}
+        {/* Pole distribution */}
         <Card>
           <CardHeader>
-            <CardTitle>Répartition par Domaine</CardTitle>
+            <CardTitle>Répartition par Pôle</CardTitle>
             <CardDescription>
-              Distribution des projets par domaine d'activité
+              Distribution des projets par pôle d'activité
             </CardDescription>
           </CardHeader>
           <CardContent>

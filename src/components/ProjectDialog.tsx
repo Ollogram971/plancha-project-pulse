@@ -28,7 +28,7 @@ const projectSchema = z.object({
     .max(5000, "Description trop longue (max 5000 caractères)")
     .optional()
     .or(z.literal("")),
-  pole_id: z.string().uuid("Domaine invalide")
+  pole_id: z.string().uuid("Pôle invalide")
 });
 
 export function ProjectDialog() {
@@ -150,7 +150,7 @@ export function ProjectDialog() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="pole">Domaine *</Label>
+              <Label htmlFor="pole">Pôle *</Label>
               <div className="flex gap-2">
                 <Select
                   required
@@ -158,7 +158,7 @@ export function ProjectDialog() {
                   onValueChange={(value) => setFormData({ ...formData, pole_id: value })}
                 >
                   <SelectTrigger id="pole" className="flex-1">
-                    <SelectValue placeholder="Sélectionner un domaine" />
+                    <SelectValue placeholder="Sélectionner un pôle" />
                   </SelectTrigger>
                   <SelectContent>
                     {poles?.map((pole) => (
@@ -173,7 +173,7 @@ export function ProjectDialog() {
                   variant="outline"
                   size="icon"
                   onClick={() => setPoleDialogOpen(true)}
-                  title="Créer un nouveau domaine"
+                  title="Créer un nouveau pôle"
                 >
                   <Plus className="h-4 w-4" />
                 </Button>

@@ -64,9 +64,9 @@ export function PoleDialog({ open, onOpenChange, onPoleCreated }: PoleDialogProp
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Créer un nouveau domaine</DialogTitle>
+          <DialogTitle>Créer un nouveau pôle</DialogTitle>
           <DialogDescription>
-            Ajoutez un domaine pour organiser vos projets
+            Ajoutez un pôle pour organiser vos projets
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -100,7 +100,7 @@ export function PoleDialog({ open, onOpenChange, onPoleCreated }: PoleDialogProp
               Annuler
             </Button>
             <Button type="submit" disabled={createPole.isPending}>
-              {createPole.isPending ? "Création..." : "Créer le domaine"}
+              {createPole.isPending ? "Création..." : "Créer le pôle"}
             </Button>
           </div>
         </form>

@@ -25,7 +25,7 @@ const projectUpdateSchema = z.object({
     .max(5000, "Description trop longue (max 5000 caractères)")
     .optional()
     .or(z.literal("")),
-  pole_id: z.string().uuid("Domaine invalide"),
+  pole_id: z.string().uuid("Pôle invalide"),
   statut: z.enum(['a_valider', 'en_cours', 'archive']),
   budget_total: z.string().optional(),
   budget_acquis: z.string().optional(),
@@ -289,14 +289,14 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="pole">Domaine *</Label>
+              <Label htmlFor="pole">Pôle *</Label>
               <Select
                 required
                 value={formData.pole_id}
                 onValueChange={(value) => setFormData({ ...formData, pole_id: value })}
               >
                 <SelectTrigger id="pole">
-                  <SelectValue placeholder="Sélectionner un domaine" />
+                  <SelectValue placeholder="Sélectionner un pôle" />
                 </SelectTrigger>
                 <SelectContent>
                   {poles?.map((pole) => (
