@@ -147,12 +147,30 @@ export default function Settings() {
         }
       }
 
-      // Enrich logs with project titles
+      // Map technical table names to user-friendly labels
+      const entityLabels: Record<string, string> = {
+        'scores_raw': 'Scores',
+        'projects': 'Projets',
+        'user_roles': 'Rôles utilisateurs',
+        'themes': 'Thèmes',
+        'poles': 'Pôles',
+        'criteria': 'Critères',
+        'weights': 'Pondérations',
+        'weight_profiles': 'Profils de pondération',
+        'criterion_scales': 'Échelles de notation',
+        'comments': 'Commentaires',
+        'attachments': 'Pièces jointes',
+        'project_themes': 'Thèmes de projets',
+        'app_settings': 'Paramètres application',
+        'profiles': 'Profils utilisateurs',
+      };
+
+      // Enrich logs with project titles or friendly labels
       return logs?.map(log => ({
         ...log,
         entity_display: log.entite === 'projects' && projectTitles[log.entite_id]
           ? projectTitles[log.entite_id]
-          : log.entite
+          : entityLabels[log.entite] || log.entite
       }));
     },
   });
