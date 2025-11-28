@@ -3,7 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search } from "lucide-react";
+import { Search, RotateCcw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -83,6 +84,15 @@ export default function Projects() {
     }
   }, [searchParams]);
 
+  const handleResetFilters = () => {
+    setSearchQuery("");
+    setFilterPole("all");
+    setFilterStatus("all");
+    setFilterFamilleTheme("all");
+  };
+
+  const hasActiveFilters = searchQuery !== "" || filterPole !== "all" || filterStatus !== "all" || filterFamilleTheme !== "all";
+
   const filteredProjects = useMemo(() => {
     if (!projects) return [];
 
@@ -137,7 +147,20 @@ export default function Projects() {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Filtres et recherche</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">Filtres et recherche</CardTitle>
+            {hasActiveFilters && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleResetFilters}
+                className="gap-2"
+              >
+                <RotateCcw className="h-4 w-4" />
+                Réinitialiser
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-5">
