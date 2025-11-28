@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/select";
 import { useProjects } from "@/hooks/useProjects";
 import { usePoles } from "@/hooks/usePoles";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { ProjectDialog } from "@/components/ProjectDialog";
 
 const getStatusColor = (status: string) => {
@@ -43,9 +45,28 @@ export default function Projects() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterPole, setFilterPole] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterFamilleTheme, setFilterFamilleTheme] = useState<string>("all");
 
   const { data: projects, isLoading } = useProjects();
   const { data: poles } = usePoles();
+
+  // Fetch unique theme families
+  const { data: themeFamilies } = useQuery({
+    queryKey: ['theme-families'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('themes')
+        .select('famille')
+        .not('famille', 'is', null)
+        .order('famille');
+      
+      if (error) throw error;
+      
+      // Get unique families
+      const uniqueFamilies = Array.from(new Set(data.map(t => t.famille).filter(Boolean)));
+      return uniqueFamilies as string[];
+    },
+  });
 
   // Initialize filter from URL params
   useEffect(() => {
@@ -85,9 +106,12 @@ export default function Projects() {
           ? project.statut === "a_valider"
           : project.statut === filterStatus;
 
-      return matchesSearch && matchesPole && matchesStatus;
+      const matchesFamilleTheme =
+        filterFamilleTheme === "all" || project.famille_theme === filterFamilleTheme;
+
+      return matchesSearch && matchesPole && matchesStatus && matchesFamilleTheme;
     });
-  }, [projects, searchQuery, filterPole, filterStatus]);
+  }, [projects, searchQuery, filterPole, filterStatus, filterFamilleTheme]);
 
   if (isLoading) {
     return (
@@ -116,7 +140,7 @@ export default function Projects() {
           <CardTitle className="text-lg">Filtres et recherche</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-5">
             <div className="md:col-span-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -137,6 +161,19 @@ export default function Projects() {
                 {poles?.map((pole) => (
                   <SelectItem key={pole.id} value={pole.id}>
                     {pole.libelle}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={filterFamilleTheme} onValueChange={setFilterFamilleTheme}>
+              <SelectTrigger>
+                <SelectValue placeholder="Toutes les familles" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes les familles</SelectItem>
+                {themeFamilies?.map((famille) => (
+                  <SelectItem key={famille} value={famille}>
+                    {famille}
                   </SelectItem>
                 ))}
               </SelectContent>
