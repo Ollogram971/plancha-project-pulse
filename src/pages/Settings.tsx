@@ -133,7 +133,14 @@ export default function Settings() {
         ?.filter(log => log.entite === 'projects')
         .map(log => log.entite_id) || [];
 
+      // For scores_raw, we need to get project_id from the table
+      const scoresIds = logs
+        ?.filter(log => log.entite === 'scores_raw')
+        .map(log => log.entite_id) || [];
+
       let projectTitles: Record<string, string> = {};
+      let scoresProjectMap: Record<string, string> = {};
+
       if (projectIds.length > 0) {
         const { data: projects } = await supabase
           .from("projects")
@@ -143,6 +150,19 @@ export default function Settings() {
         if (projects) {
           projectTitles = Object.fromEntries(
             projects.map(p => [p.id, p.titre])
+          );
+        }
+      }
+
+      if (scoresIds.length > 0) {
+        const { data: scores } = await supabase
+          .from("scores_raw")
+          .select("id, project_id, projects(titre)")
+          .in("id", scoresIds);
+        
+        if (scores) {
+          scoresProjectMap = Object.fromEntries(
+            scores.map(s => [s.id, (s.projects as any)?.titre || ''])
           );
         }
       }
@@ -166,12 +186,15 @@ export default function Settings() {
       };
 
       // Enrich logs with project titles or friendly labels
-      return logs?.map(log => ({
-        ...log,
-        entity_display: log.entite === 'projects' && projectTitles[log.entite_id]
-          ? projectTitles[log.entite_id]
-          : entityLabels[log.entite] || log.entite
-      }));
+      return logs?.map(log => {
+        if (log.entite === 'projects' && projectTitles[log.entite_id]) {
+          return { ...log, entity_display: projectTitles[log.entite_id] };
+        } else if (log.entite === 'scores_raw' && scoresProjectMap[log.entite_id]) {
+          return { ...log, entity_display: `Scores (${scoresProjectMap[log.entite_id]})` };
+        } else {
+          return { ...log, entity_display: entityLabels[log.entite] || log.entite };
+        }
+      });
     },
   });
 
