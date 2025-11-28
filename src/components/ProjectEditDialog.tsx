@@ -297,7 +297,17 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
             Code: {project?.code}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        
+        <div className="flex justify-end gap-2 pt-2 pb-4 border-b">
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            Annuler
+          </Button>
+          <Button type="submit" form="project-edit-form" disabled={updateProject.isPending}>
+            {updateProject.isPending ? "Enregistrement..." : "Enregistrer"}
+          </Button>
+        </div>
+
+        <form id="project-edit-form" onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="titre">Titre du projet *</Label>
             <Input
