@@ -12,6 +12,7 @@ import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 import { PoleDialog } from "./PoleDialog";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 const projectSchema = z.object({
   code: z.string()
@@ -28,7 +29,8 @@ const projectSchema = z.object({
     .max(5000, "Description trop longue (max 5000 caractères)")
     .optional()
     .or(z.literal("")),
-  pole_id: z.string().uuid("Pôle/Service invalide")
+  pole_id: z.string().uuid("Pôle/Service invalide"),
+  famille_theme: z.string().optional()
 });
 
 export function ProjectDialog() {
@@ -39,11 +41,29 @@ export function ProjectDialog() {
     titre: "",
     description: "",
     pole_id: "",
+    famille_theme: "",
   });
 
   const createProject = useCreateProject();
   const { data: poles } = usePoles();
   const { toast } = useToast();
+
+  // Fetch theme families
+  const { data: themeFamilies } = useQuery({
+    queryKey: ["theme-families"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("themes")
+        .select("famille")
+        .not("famille", "is", null)
+        .order("famille");
+      if (error) throw error;
+      
+      // Get unique families
+      const uniqueFamilies = Array.from(new Set(data.map(t => t.famille)));
+      return uniqueFamilies;
+    },
+  });
 
   // Generate next project code when dialog opens
   useEffect(() => {
@@ -109,7 +129,7 @@ export function ProjectDialog() {
 
       await createProject.mutateAsync(validated);
       setOpen(false);
-      setFormData({ code: "", titre: "", description: "", pole_id: "" });
+      setFormData({ code: "", titre: "", description: "", pole_id: "", famille_theme: "" });
     } catch (error) {
       if (error instanceof z.ZodError) {
         const firstError = error.errors[0];
@@ -189,6 +209,24 @@ export function ProjectDialog() {
               onChange={(e) => setFormData({ ...formData, titre: e.target.value })}
               placeholder="Restauration écologique zone humide"
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="famille_theme">Famille de thème</Label>
+            <Select
+              value={formData.famille_theme}
+              onValueChange={(value) => setFormData({ ...formData, famille_theme: value })}
+            >
+              <SelectTrigger id="famille_theme">
+                <SelectValue placeholder="Sélectionner une famille" />
+              </SelectTrigger>
+              <SelectContent>
+                {themeFamilies?.map((famille) => (
+                  <SelectItem key={famille} value={famille}>
+                    {famille}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>

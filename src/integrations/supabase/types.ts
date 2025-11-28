@@ -325,6 +325,7 @@ export type Database = {
           date_saisie: string
           description: string | null
           faisabilite: Database["public"]["Enums"]["feasibility_level"] | null
+          famille_theme: string | null
           financement_statut:
             | Database["public"]["Enums"]["financing_status"]
             | null
@@ -353,6 +354,7 @@ export type Database = {
           date_saisie?: string
           description?: string | null
           faisabilite?: Database["public"]["Enums"]["feasibility_level"] | null
+          famille_theme?: string | null
           financement_statut?:
             | Database["public"]["Enums"]["financing_status"]
             | null
@@ -381,6 +383,7 @@ export type Database = {
           date_saisie?: string
           description?: string | null
           faisabilite?: Database["public"]["Enums"]["feasibility_level"] | null
+          famille_theme?: string | null
           financement_statut?:
             | Database["public"]["Enums"]["financing_status"]
             | null
