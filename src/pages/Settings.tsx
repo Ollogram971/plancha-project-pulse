@@ -311,7 +311,7 @@ export default function Settings() {
                         <TableHead>Date</TableHead>
                         <TableHead>Utilisateur</TableHead>
                         <TableHead>Action</TableHead>
-                        <TableHead>Entité</TableHead>
+                        <TableHead>Projets</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
