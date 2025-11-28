@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Trash2, UserPlus } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 type AppRole = "admin" | "contributeur" | "lecteur";
 
@@ -26,6 +27,7 @@ export function UserManagementDialog() {
   const [inviteRole, setInviteRole] = useState<AppRole>("lecteur");
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const { data: users, isLoading } = useQuery({
     queryKey: ["users-with-roles"],
@@ -73,6 +75,33 @@ export function UserManagementDialog() {
       console.error("Error updating role:", error);
     },
   });
+
+  const handleDeleteUser = (userId: string, userRole: AppRole | null) => {
+    // Vérifier si l'utilisateur essaie de supprimer son propre compte
+    if (user?.id === userId) {
+      toast({
+        title: "Action non autorisée",
+        description: "Vous ne pouvez pas supprimer votre propre compte.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Si c'est un admin, vérifier qu'il reste au moins un autre admin
+    if (userRole === "admin") {
+      const adminCount = users?.filter(u => u.role === "admin").length || 0;
+      if (adminCount <= 1) {
+        toast({
+          title: "Action non autorisée",
+          description: "Il doit rester au moins un compte administrateur dans le système.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    deleteUserMutation.mutate(userId);
+  };
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
@@ -272,7 +301,7 @@ export function UserManagementDialog() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => deleteUserMutation.mutate(user.id)}
+                            onClick={() => handleDeleteUser(user.id, user.role)}
                             disabled={deleteUserMutation.isPending}
                           >
                             <Trash2 className="h-4 w-4" />
