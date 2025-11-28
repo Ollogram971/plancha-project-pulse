@@ -249,6 +249,9 @@ export default function Projects() {
                             <h3 className="font-semibold text-base">{project.titre}</h3>
                             <p className="text-sm text-muted-foreground">
                               {project.code} • {project.poles?.libelle || "N/A"}
+                              {project.famille_theme && (
+                                <> • {project.famille_theme}</>
+                              )}
                             </p>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
