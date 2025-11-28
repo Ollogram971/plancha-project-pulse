@@ -35,6 +35,7 @@ const projectUpdateSchema = z.object({
   date_previsionnelle_debut: z.string().optional(),
   date_demarrage: z.string().optional(),
   date_fin: z.string().optional(),
+  famille_theme: z.string().optional(),
 }).refine((data) => {
   if (data.statut === 'en_cours' && !data.date_demarrage) {
     return false;
@@ -92,6 +93,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
     date_previsionnelle_debut: string;
     date_demarrage: string;
     date_fin: string;
+    famille_theme: string;
   }>({
     titre: "",
     description: "",
@@ -105,6 +107,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
     date_previsionnelle_debut: "",
     date_demarrage: "",
     date_fin: "",
+    famille_theme: "",
   });
 
   const [scores, setScores] = useState<Record<string, number>>({});
@@ -113,6 +116,23 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
   const { data: poles } = usePoles();
   const { toast } = useToast();
   const upsertScore = useUpsertScore();
+
+  // Fetch theme families
+  const { data: themeFamilies } = useQuery({
+    queryKey: ["theme-families"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("themes")
+        .select("famille")
+        .not("famille", "is", null)
+        .order("famille");
+      if (error) throw error;
+      
+      // Get unique families
+      const uniqueFamilies = Array.from(new Set(data.map(t => t.famille)));
+      return uniqueFamilies;
+    },
+  });
 
   // Fetch criteria and weights
   const { data: criteria } = useQuery({
@@ -195,6 +215,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
         date_previsionnelle_debut: project.date_previsionnelle_debut || "",
         date_demarrage: dateDebut,
         date_fin: dateFin,
+        famille_theme: project.famille_theme || "",
       });
     }
   }, [project]);
@@ -325,6 +346,25 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="famille_theme">Famille de thème</Label>
+            <Select
+              value={formData.famille_theme}
+              onValueChange={(value) => setFormData({ ...formData, famille_theme: value })}
+            >
+              <SelectTrigger id="famille_theme">
+                <SelectValue placeholder="Sélectionner une famille" />
+              </SelectTrigger>
+              <SelectContent>
+                {themeFamilies?.map((famille) => (
+                  <SelectItem key={famille} value={famille}>
+                    {famille}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
