@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, RotateCcw } from "lucide-react";
+import { Search, RotateCcw, Euro } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -123,6 +123,32 @@ export default function Projects() {
     });
   }, [projects, searchQuery, filterPole, filterStatus, filterFamilleTheme]);
 
+  // Calculate total budget of filtered projects
+  const budgetStats = useMemo(() => {
+    if (!filteredProjects || filteredProjects.length === 0) {
+      return { total: 0, count: 0, formatted: "0 €" };
+    }
+
+    const projectsWithBudget = filteredProjects.filter(p => p.budget_total !== null && p.budget_total !== undefined);
+    const total = projectsWithBudget.reduce((sum, project) => sum + Number(project.budget_total || 0), 0);
+    
+    // Format the budget in a readable way
+    let formatted: string;
+    if (total >= 1000000) {
+      formatted = `${(total / 1000000).toFixed(2).replace('.', ',')} M€`;
+    } else if (total >= 1000) {
+      formatted = `${(total / 1000).toFixed(0)} k€`;
+    } else {
+      formatted = `${total.toFixed(0)} €`;
+    }
+
+    return { 
+      total, 
+      count: projectsWithBudget.length,
+      formatted
+    };
+  }, [filteredProjects]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -220,10 +246,30 @@ export default function Projects() {
       {/* Projects table */}
       <Card>
         <CardHeader>
-          <CardTitle>Liste des projets ({filteredProjects.length})</CardTitle>
-          <CardDescription>
-            Classés par score PLANCHA décroissant
-          </CardDescription>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <CardTitle>Liste des projets ({filteredProjects.length})</CardTitle>
+              <CardDescription>
+                Classés par score PLANCHA décroissant
+              </CardDescription>
+            </div>
+            {budgetStats.count > 0 && (
+              <div className="flex items-center gap-3 bg-primary/10 rounded-lg px-4 py-2.5 border border-primary/20">
+                <div className="flex items-center justify-center h-9 w-9 rounded-full bg-primary text-primary-foreground">
+                  <Euro className="h-5 w-5" />
+                </div>
+                <div className="text-left">
+                  <p className="text-xs text-muted-foreground font-medium">Budget total</p>
+                  <p className="text-lg font-bold text-primary">{budgetStats.formatted}</p>
+                </div>
+                {budgetStats.count < filteredProjects.length && (
+                  <span className="text-xs text-muted-foreground ml-2">
+                    ({budgetStats.count}/{filteredProjects.length} projets)
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {filteredProjects.length === 0 ? (
