@@ -324,6 +324,7 @@ export type Database = {
           date_previsionnelle_debut: string | null
           date_saisie: string
           description: string | null
+          eva_project_id: string | null
           faisabilite: Database["public"]["Enums"]["feasibility_level"] | null
           famille_theme: string | null
           financement_statut:
@@ -353,6 +354,7 @@ export type Database = {
           date_previsionnelle_debut?: string | null
           date_saisie?: string
           description?: string | null
+          eva_project_id?: string | null
           faisabilite?: Database["public"]["Enums"]["feasibility_level"] | null
           famille_theme?: string | null
           financement_statut?:
@@ -382,6 +384,7 @@ export type Database = {
           date_previsionnelle_debut?: string | null
           date_saisie?: string
           description?: string | null
+          eva_project_id?: string | null
           faisabilite?: Database["public"]["Enums"]["feasibility_level"] | null
           famille_theme?: string | null
           financement_statut?:

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Edit } from "lucide-react";
+import { ArrowLeft, Edit, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ProjectEditDialog } from "@/components/ProjectEditDialog";
 import { useProjectScores } from "@/hooks/useScores";
+
+const EVA_BASE_URL = "https://guadeloupe.evaparc.net/project/form/";
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -133,7 +135,21 @@ export default function ProjectDetail() {
 
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{project.titre}</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold tracking-tight">{project.titre}</h1>
+            {project.eva_project_id && (
+              <a
+                href={`${EVA_BASE_URL}${project.eva_project_id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium hover:bg-primary/20 transition-colors"
+                title="Voir dans EVA"
+              >
+                <ExternalLink className="h-4 w-4" />
+                EVA
+              </a>
+            )}
+          </div>
           <p className="text-muted-foreground mt-2">{project.code}</p>
         </div>
         <div className="flex items-center gap-2">
