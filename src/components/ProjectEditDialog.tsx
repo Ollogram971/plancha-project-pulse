@@ -14,6 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const projectUpdateSchema = z.object({
   titre: z.string()
@@ -116,6 +117,9 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
   const { data: poles } = usePoles();
   const { toast } = useToast();
   const upsertScore = useUpsertScore();
+  const { data: userRole } = useUserRole();
+  
+  const isContributeur = userRole === "contributeur";
 
   // Fetch theme families
   const { data: themeFamilies } = useQuery({
@@ -351,7 +355,9 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="a_valider">À valider</SelectItem>
-                  <SelectItem value="en_cours">En cours</SelectItem>
+                  <SelectItem value="en_cours" disabled={isContributeur}>
+                    En cours {isContributeur && "(réservé admin)"}
+                  </SelectItem>
                   <SelectItem value="archive">Archivé</SelectItem>
                 </SelectContent>
               </Select>
