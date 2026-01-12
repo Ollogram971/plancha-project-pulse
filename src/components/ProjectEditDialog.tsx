@@ -95,6 +95,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
     date_demarrage: string;
     date_fin: string;
     famille_theme: string;
+    eva_project_id: string;
   }>({
     titre: "",
     description: "",
@@ -109,6 +110,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
     date_demarrage: "",
     date_fin: "",
     famille_theme: "",
+    eva_project_id: "",
   });
 
   const [scores, setScores] = useState<Record<string, number>>({});
@@ -220,6 +222,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
         date_demarrage: dateDebut,
         date_fin: dateFin,
         famille_theme: project.famille_theme || "",
+        eva_project_id: project.eva_project_id || "",
       });
     }
   }, [project]);
@@ -250,6 +253,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
     
     try {
       const validated = projectUpdateSchema.parse(formData);
+      const evaId = formData.eva_project_id.trim();
       const updateData = {
         ...validated,
         budget_total: validated.budget_total ? parseFloat(validated.budget_total) : null,
@@ -259,6 +263,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
         date_demarrage: validated.date_demarrage || null,
         date_fin: validated.date_fin || null,
         score_total: calculatedScore,
+        eva_project_id: evaId && /^\d+$/.test(evaId) ? evaId : null,
       };
       
       await updateProject.mutateAsync({ id: project.id, data: updateData });
@@ -508,6 +513,30 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
               onChange={(e) => setFormData({ ...formData, risques: e.target.value })}
               rows={3}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="eva_project_id">Identifiant EVA</Label>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground whitespace-nowrap">
+                https://guadeloupe.evaparc.net/project/form/
+              </span>
+              <Input
+                id="eva_project_id"
+                value={formData.eva_project_id}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, '');
+                  setFormData({ ...formData, eva_project_id: value });
+                }}
+                placeholder="602"
+                className="w-24"
+                inputMode="numeric"
+                pattern="\d*"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Entrez uniquement le numéro du projet EVA (ex: 602)
+            </p>
           </div>
 
           <Separator className="my-6" />
