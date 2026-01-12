@@ -119,7 +119,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
   const upsertScore = useUpsertScore();
   const { data: userRole } = useUserRole();
   
-  const isContributeur = userRole === "contributeur";
+  const canValidateProject = userRole === "admin" || userRole === "validateur";
 
   // Fetch theme families
   const { data: themeFamilies } = useQuery({
@@ -355,8 +355,8 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="a_valider">À valider</SelectItem>
-                  <SelectItem value="en_cours" disabled={isContributeur}>
-                    En cours {isContributeur && "(réservé admin)"}
+                  <SelectItem value="en_cours" disabled={!canValidateProject}>
+                    En cours {!canValidateProject && "(réservé admin/validateur)"}
                   </SelectItem>
                   <SelectItem value="archive">Archivé</SelectItem>
                 </SelectContent>

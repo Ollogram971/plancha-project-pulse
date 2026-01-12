@@ -12,7 +12,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Trash2, UserPlus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
-type AppRole = "admin" | "contributeur" | "lecteur";
+type AppRole = "admin" | "validateur" | "contributeur" | "lecteur";
 
 interface UserWithRole {
   id: string;
@@ -180,6 +180,8 @@ export function UserManagementDialog() {
     switch (role) {
       case "admin":
         return "default";
+      case "validateur":
+        return "default";
       case "contributeur":
         return "secondary";
       case "lecteur":
@@ -193,6 +195,8 @@ export function UserManagementDialog() {
     switch (role) {
       case "admin":
         return "Administrateur";
+      case "validateur":
+        return "Validateur";
       case "contributeur":
         return "Contributeur";
       case "lecteur":
@@ -242,6 +246,7 @@ export function UserManagementDialog() {
                   <SelectContent>
                     <SelectItem value="lecteur">Lecteur</SelectItem>
                     <SelectItem value="contributeur">Contributeur</SelectItem>
+                    <SelectItem value="validateur">Validateur</SelectItem>
                     <SelectItem value="admin">Administrateur</SelectItem>
                   </SelectContent>
                 </Select>
@@ -293,6 +298,7 @@ export function UserManagementDialog() {
                             <SelectContent>
                               <SelectItem value="lecteur">Lecteur</SelectItem>
                               <SelectItem value="contributeur">Contributeur</SelectItem>
+                              <SelectItem value="validateur">Validateur</SelectItem>
                               <SelectItem value="admin">Administrateur</SelectItem>
                             </SelectContent>
                           </Select>
@@ -324,6 +330,7 @@ export function UserManagementDialog() {
 
           <div className="text-sm text-muted-foreground space-y-2">
             <p><strong>Administrateur:</strong> Contrôle total sur tous les modules, paramètres, utilisateurs, pondérations, imports/exports</p>
+            <p><strong>Validateur:</strong> Mêmes droits que Contributeur + validation des projets (statut "En cours")</p>
             <p><strong>Contributeur:</strong> Création/édition de projets, métadonnées, scores, pièces jointes</p>
             <p><strong>Lecteur:</strong> Accès en lecture seule aux classements, tableaux de bord, rapports</p>
           </div>
