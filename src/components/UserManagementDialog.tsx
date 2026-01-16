@@ -131,18 +131,12 @@ export function UserManagementDialog() {
 
   const inviteUserMutation = useMutation({
     mutationFn: async ({ email, role }: { email: string; role: AppRole }) => {
-      // First, create the user account via Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.admin.inviteUserByEmail(email);
-      
-      if (authError) throw authError;
-      if (!authData.user) throw new Error("No user returned from invite");
+      const { data, error } = await supabase.functions.invoke("invite-user", {
+        body: { email, role },
+      });
 
-      // Assign role to the new user
-      const { error: roleError } = await supabase
-        .from("user_roles")
-        .insert({ user_id: authData.user.id, role });
-      
-      if (roleError) throw roleError;
+      if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users-with-roles"] });
