@@ -337,6 +337,7 @@ export type Database = {
           rang: number | null
           risques: string | null
           score_total: number | null
+          sources_financement: string[] | null
           statut: Database["public"]["Enums"]["project_status"]
           titre: string
           updated_at: string
@@ -367,6 +368,7 @@ export type Database = {
           rang?: number | null
           risques?: string | null
           score_total?: number | null
+          sources_financement?: string[] | null
           statut?: Database["public"]["Enums"]["project_status"]
           titre: string
           updated_at?: string
@@ -397,6 +399,7 @@ export type Database = {
           rang?: number | null
           risques?: string | null
           score_total?: number | null
+          sources_financement?: string[] | null
           statut?: Database["public"]["Enums"]["project_status"]
           titre?: string
           updated_at?: string

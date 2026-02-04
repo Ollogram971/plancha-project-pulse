@@ -15,6 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { useUserRole } from "@/hooks/useUserRole";
+import { SourcesFinancementSelector } from "./SourcesFinancementSelector";
 
 const projectUpdateSchema = z.object({
   titre: z.string()
@@ -96,6 +97,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
     date_fin: string;
     famille_theme: string;
     eva_project_id: string;
+    sources_financement: string[];
   }>({
     titre: "",
     description: "",
@@ -111,6 +113,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
     date_fin: "",
     famille_theme: "",
     eva_project_id: "",
+    sources_financement: [],
   });
 
   const [scores, setScores] = useState<Record<string, number>>({});
@@ -223,6 +226,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
         date_fin: dateFin,
         famille_theme: project.famille_theme || "",
         eva_project_id: project.eva_project_id || "",
+        sources_financement: project.sources_financement || [],
       });
     }
   }, [project]);
@@ -264,6 +268,7 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
         date_fin: validated.date_fin || null,
         score_total: calculatedScore,
         eva_project_id: evaId && /^\d+$/.test(evaId) ? evaId : null,
+        sources_financement: formData.sources_financement.length > 0 ? formData.sources_financement : null,
       };
       
       await updateProject.mutateAsync({ id: project.id, data: updateData });
@@ -538,6 +543,13 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
               Entrez uniquement le numéro du projet EVA (ex: 602)
             </p>
           </div>
+
+          <Separator className="my-6" />
+
+          <SourcesFinancementSelector
+            selectedSources={formData.sources_financement}
+            onSourcesChange={(sources) => setFormData({ ...formData, sources_financement: sources })}
+          />
 
           <Separator className="my-6" />
 

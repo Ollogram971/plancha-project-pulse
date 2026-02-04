@@ -231,6 +231,16 @@ export default function ProjectDetail() {
                 <p className="text-base capitalize">{project.financement_statut.replace('_', ' ')}</p>
               </div>
             )}
+            {project.sources_financement && project.sources_financement.length > 0 && (
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Sources de financement</p>
+                <ul className="list-disc list-inside mt-1">
+                  {[...project.sources_financement].sort((a: string, b: string) => a.localeCompare(b, 'fr')).map((source: string, idx: number) => (
+                    <li key={idx} className="text-sm">{source}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </CardContent>
         </Card>
 
