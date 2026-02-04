@@ -124,3 +124,46 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Print styles */
+@media print {
+  /* Hide everything except printable content */
+  body * {
+    visibility: hidden;
+  }
+  
+  .print-container,
+  .print-container * {
+    visibility: visible;
+  }
+  
+  .print-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  /* Reset for printing */
+  @page {
+    margin: 1cm;
+    size: A4 landscape;
+  }
+  
+  /* Ensure table rows don't break across pages */
+  tr {
+    page-break-inside: avoid;
+  }
+  
+  /* Hide the printable container on screen */
+  .print\\:block {
+    display: block !important;
+  }
+  
+  .print\\:hidden {
+    display: none !important;
+  }
+}
