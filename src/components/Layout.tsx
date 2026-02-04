@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { AboutDialog } from "@/components/AboutDialog";
 import { useIsAdmin } from "@/hooks/useUserRole";
 import { PasswordChangeDialog } from "@/components/PasswordChangeDialog";
+import { ExpiredProjectsAlert } from "@/components/ExpiredProjectsAlert";
 import { User, KeyRound } from "lucide-react";
 
 const navigation = [
@@ -188,6 +189,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </header>
+
+      {/* Expired Projects Alert Banner */}
+      <ExpiredProjectsAlert />
 
       {/* Main content */}
       <main className="container px-4 sm:px-6 py-6">{children}</main>
