@@ -1,9 +1,9 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, RotateCcw, Euro } from "lucide-react";
+import { Search, RotateCcw, Euro, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -17,6 +17,7 @@ import { usePoles } from "@/hooks/usePoles";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ProjectDialog } from "@/components/ProjectDialog";
+import { ProjectsListPrintable } from "@/components/ProjectsListPrintable";
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -47,6 +48,7 @@ export default function Projects() {
   const [filterPole, setFilterPole] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterFamilleTheme, setFilterFamilleTheme] = useState<string>("all");
+  const printRef = useRef<HTMLDivElement>(null);
 
   const { data: projects, isLoading } = useProjects();
   const { data: poles } = usePoles();
@@ -93,6 +95,24 @@ export default function Projects() {
 
   const hasActiveFilters = searchQuery !== "" || filterPole !== "all" || filterStatus !== "all" || filterFamilleTheme !== "all";
 
+  // Get filter info for print
+  const filterInfo = useMemo(() => {
+    const poleName = poles?.find(p => p.id === filterPole)?.libelle;
+    const statusLabel = filterStatus === "attention" ? "Attention requise" :
+      filterStatus === "a_valider" ? "À valider" :
+      filterStatus === "en_cours" ? "En cours" :
+      filterStatus === "archive" ? "Archivé" : undefined;
+    
+    return {
+      pole: filterPole !== "all" ? poleName : undefined,
+      status: filterStatus !== "all" ? statusLabel : undefined,
+      famille: filterFamilleTheme !== "all" ? filterFamilleTheme : undefined,
+    };
+  }, [filterPole, filterStatus, filterFamilleTheme, poles]);
+
+  const handlePrint = () => {
+    window.print();
+  };
   const filteredProjects = useMemo(() => {
     if (!projects) return [];
 
@@ -160,18 +180,28 @@ export default function Projects() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between print:hidden">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Projets</h1>
           <p className="text-muted-foreground mt-2">
             Gestion et suivi des projets PLANCHA
           </p>
         </div>
-        <ProjectDialog />
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={handlePrint}
+            className="gap-2"
+          >
+            <Printer className="h-4 w-4" />
+            Imprimer
+          </Button>
+          <ProjectDialog />
+        </div>
       </div>
 
       {/* Filters */}
-      <Card>
+      <Card className="print:hidden">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg">Filtres et recherche</CardTitle>
@@ -244,7 +274,7 @@ export default function Projects() {
       </Card>
 
       {/* Projects table */}
-      <Card>
+      <Card className="print:hidden">
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
@@ -328,6 +358,16 @@ export default function Projects() {
           )}
         </CardContent>
       </Card>
+
+      {/* Printable version */}
+      <ProjectsListPrintable
+        ref={printRef}
+        projects={filteredProjects}
+        budgetFormatted={budgetStats.formatted}
+        budgetCount={budgetStats.count}
+        totalProjects={filteredProjects.length}
+        filterInfo={filterInfo}
+      />
     </div>
   );
 }
