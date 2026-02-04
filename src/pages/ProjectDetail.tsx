@@ -267,18 +267,44 @@ export default function ProjectDetail() {
                 <p className="text-base">{new Date(project.date_fin).toLocaleDateString('fr-FR')}</p>
               </div>
             )}
-            {project.avancement !== null && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-medium text-muted-foreground">Avancement</p>
-                  <p className="text-sm font-semibold">{project.avancement}%</p>
-                </div>
-                <Progress 
-                  value={project.avancement} 
-                  className="h-3"
-                />
-              </div>
-            )}
+            {(() => {
+              // Calculate progress based on dates if both start and end dates exist
+              let calculatedProgress: number | null = null;
+              
+              if (project.date_demarrage && project.date_fin) {
+                const startDate = new Date(project.date_demarrage);
+                const endDate = new Date(project.date_fin);
+                const today = new Date();
+                
+                const totalDuration = endDate.getTime() - startDate.getTime();
+                const elapsed = today.getTime() - startDate.getTime();
+                
+                if (totalDuration > 0) {
+                  calculatedProgress = Math.round((elapsed / totalDuration) * 100);
+                  // Cap between 0 and 100
+                  calculatedProgress = Math.max(0, Math.min(100, calculatedProgress));
+                }
+              }
+              
+              // Use calculated progress if available, otherwise fall back to manual avancement
+              const displayProgress = calculatedProgress ?? project.avancement;
+              
+              if (displayProgress !== null) {
+                return (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-muted-foreground">Avancement</p>
+                      <p className="text-sm font-semibold">{displayProgress}%</p>
+                    </div>
+                    <Progress 
+                      value={displayProgress} 
+                      className="h-3"
+                    />
+                  </div>
+                );
+              }
+              return null;
+            })()}
           </CardContent>
         </Card>
       </div>
