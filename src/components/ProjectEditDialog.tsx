@@ -427,6 +427,11 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
             </div>
           </div>
 
+          <SourcesFinancementSelector
+            selectedSources={formData.sources_financement}
+            onSourcesChange={(sources) => setFormData({ ...formData, sources_financement: sources })}
+          />
+
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="date_previsionnelle_debut">Date prévisionnelle de début</Label>
@@ -543,13 +548,6 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
               Entrez uniquement le numéro du projet EVA (ex: 602)
             </p>
           </div>
-
-          <Separator className="my-6" />
-
-          <SourcesFinancementSelector
-            selectedSources={formData.sources_financement}
-            onSourcesChange={(sources) => setFormData({ ...formData, sources_financement: sources })}
-          />
 
           <Separator className="my-6" />
 
