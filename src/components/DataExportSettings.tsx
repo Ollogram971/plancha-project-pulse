@@ -113,16 +113,36 @@ export function DataExportSettings() {
       const { data, error } = await supabase
         .from("user_roles")
         .select("*")
-        .neq("role", "admin");
+        .neq("role", "admin" as const);
       
       if (error) throw error;
       return (data || []) as Record<string, unknown>[];
     }
 
-    // Cas général
-    const { data, error } = await supabase
-      .from(tableName)
-      .select("*");
+    // Cas général - utiliser une approche avec type assertion
+    const tableMap = {
+      projects: () => supabase.from("projects").select("*"),
+      poles: () => supabase.from("poles").select("*"),
+      themes: () => supabase.from("themes").select("*"),
+      criteria: () => supabase.from("criteria").select("*"),
+      criterion_scales: () => supabase.from("criterion_scales").select("*"),
+      weight_profiles: () => supabase.from("weight_profiles").select("*"),
+      weights: () => supabase.from("weights").select("*"),
+      scores_raw: () => supabase.from("scores_raw").select("*"),
+      scores_calculated: () => supabase.from("scores_calculated").select("*"),
+      comments: () => supabase.from("comments").select("*"),
+      attachments: () => supabase.from("attachments").select("*"),
+      project_themes: () => supabase.from("project_themes").select("*"),
+      app_settings: () => supabase.from("app_settings").select("*"),
+      audit_log: () => supabase.from("audit_log").select("*"),
+    } as const;
+
+    const queryFn = tableMap[tableName as keyof typeof tableMap];
+    if (!queryFn) {
+      throw new Error(`Table ${tableName} non supportée`);
+    }
+
+    const { data, error } = await queryFn();
     
     if (error) throw error;
     return (data || []) as Record<string, unknown>[];
