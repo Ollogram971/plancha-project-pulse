@@ -258,9 +258,6 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        {/* Database Server Settings */}
-        <DatabaseServerSettings />
-
         {/* Users management */}
         <Card>
           <CardHeader>
@@ -279,6 +276,9 @@ export default function Settings() {
             <UserManagementDialog />
           </CardContent>
         </Card>
+
+        {/* Database Server Settings */}
+        <DatabaseServerSettings />
 
         {/* Data Export Settings */}
         <DataExportSettings />
