@@ -167,3 +167,154 @@ All colors MUST be HSL.
     display: none !important;
   }
 }
+
+/* Project detail print styles - Portrait A4 */
+@media print {
+  .project-print-container,
+  .project-print-container * {
+    visibility: visible !important;
+  }
+  
+  .project-print-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 20px;
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .project-print-container .print-header {
+    border-bottom: 2px solid #2d6a4f;
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+  }
+  
+  .project-print-container .print-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a1a;
+  }
+  
+  .project-print-container .print-code {
+    font-size: 14px;
+    color: #666;
+    font-family: monospace;
+  }
+  
+  .project-print-container .print-section {
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 16px;
+    page-break-inside: avoid;
+  }
+  
+  .project-print-container .print-section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #2d6a4f;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e5e5e5;
+  }
+  
+  .project-print-container .print-row {
+    display: flex;
+    margin-bottom: 8px;
+  }
+  
+  .project-print-container .print-label {
+    font-size: 12px;
+    color: #666;
+    min-width: 140px;
+  }
+  
+  .project-print-container .print-value {
+    font-size: 13px;
+    color: #1a1a1a;
+  }
+  
+  .project-print-container .print-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  
+  .project-print-container .print-score {
+    font-size: 32px;
+    font-weight: 700;
+    color: #2d6a4f;
+  }
+  
+  .project-print-container .print-status {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+  
+  .project-print-container .print-status.en-cours {
+    background: #d4edda;
+    color: #155724;
+  }
+  
+  .project-print-container .print-status.a-valider {
+    background: #fff3cd;
+    color: #856404;
+  }
+  
+  .project-print-container .print-status.archive {
+    background: #e2e3e5;
+    color: #383d41;
+  }
+  
+  .project-print-container .print-progress-bar {
+    height: 12px;
+    background: #e5e5e5;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  
+  .project-print-container .print-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #40916c 0%, #f4a261 100%);
+  }
+  
+  .project-print-container .print-footer {
+    margin-top: 24px;
+    padding-top: 12px;
+    border-top: 1px solid #e5e5e5;
+    font-size: 11px;
+    color: #999;
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .project-print-container .print-criteria-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  
+  .project-print-container .print-criterion {
+    border: 1px solid #e5e5e5;
+    border-radius: 6px;
+    padding: 10px;
+    background: #fafafa;
+  }
+  
+  .project-print-container .print-criterion-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: #333;
+  }
+  
+  .project-print-container .print-criterion-score {
+    font-size: 11px;
+    color: #666;
+  }
+}
