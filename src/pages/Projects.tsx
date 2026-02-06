@@ -3,7 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Search, RotateCcw, Euro, Printer } from "lucide-react";
+import { Search, RotateCcw, Euro, Printer, FileSpreadsheet } from "lucide-react";
+import * as XLSX from "xlsx";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -113,6 +114,44 @@ export default function Projects() {
   const handlePrint = () => {
     window.print();
   };
+
+  const handleExportXLS = () => {
+    if (!filteredProjects || filteredProjects.length === 0) return;
+
+    const data = filteredProjects.map((project, index) => ({
+      "#": index + 1,
+      "Code": project.code,
+      "Titre": project.titre,
+      "Pôle/Service": project.poles?.libelle || "N/A",
+      "Famille": project.famille_theme || "-",
+      "Statut": formatStatus(project.statut),
+      "Date démarrage": project.date_demarrage 
+        ? new Date(project.date_demarrage).toLocaleDateString('fr-FR')
+        : "-",
+      "Budget (€)": project.budget_total || 0,
+      "Score PLANCHA": project.score_total !== null ? project.score_total : "-",
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Projets");
+
+    // Set column widths
+    ws['!cols'] = [
+      { wch: 5 },  // #
+      { wch: 12 }, // Code
+      { wch: 40 }, // Titre
+      { wch: 20 }, // Pôle
+      { wch: 15 }, // Famille
+      { wch: 12 }, // Statut
+      { wch: 15 }, // Date
+      { wch: 12 }, // Budget
+      { wch: 15 }, // Score
+    ];
+
+    const today = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `projets-plancha-${today}.xlsx`);
+  };
   const filteredProjects = useMemo(() => {
     if (!projects) return [];
 
@@ -188,6 +227,14 @@ export default function Projects() {
           </p>
         </div>
         <div className="flex gap-2">
+          <Button
+            variant="outline"
+            onClick={handleExportXLS}
+            className="gap-2"
+          >
+            <FileSpreadsheet className="h-4 w-4" />
+            Export XLS
+          </Button>
           <Button
             variant="outline"
             onClick={handlePrint}
