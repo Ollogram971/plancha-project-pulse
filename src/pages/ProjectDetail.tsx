@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Edit, ExternalLink } from "lucide-react";
+import { ArrowLeft, Edit, ExternalLink, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { ProjectEditDialog } from "@/components/ProjectEditDialog";
 import { useProjectScores } from "@/hooks/useScores";
+import { ProjectDetailPrintable } from "@/components/ProjectDetailPrintable";
 
 const EVA_BASE_URL = "https://guadeloupe.evaparc.net/project/form/";
 
@@ -38,6 +39,11 @@ export default function ProjectDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const handlePrint = () => {
+    window.print();
+  };
 
   const { data: project, isLoading } = useQuery({
     queryKey: ["project", id],
@@ -156,6 +162,10 @@ export default function ProjectDetail() {
           <Badge variant={getStatusColor(project.statut) as any} className="whitespace-nowrap">
             {formatStatus(project.statut)}
           </Badge>
+          <Button variant="outline" onClick={handlePrint}>
+            <Printer className="mr-2 h-4 w-4" />
+            Imprimer
+          </Button>
           <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
             <Edit className="mr-2 h-4 w-4" />
             Modifier
@@ -163,7 +173,7 @@ export default function ProjectDetail() {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 print:hidden">
         <Card>
           <CardHeader>
             <CardTitle>Informations générales</CardTitle>
@@ -402,6 +412,14 @@ export default function ProjectDetail() {
         open={editDialogOpen} 
         onOpenChange={setEditDialogOpen}
         project={project}
+      />
+
+      {/* Printable version */}
+      <ProjectDetailPrintable
+        ref={printRef}
+        project={project}
+        activeWeights={activeWeights}
+        projectScores={projectScores}
       />
     </div>
   );
