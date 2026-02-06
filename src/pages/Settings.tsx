@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Settings2, Users, Database, FileText, Trash2, Info } from "lucide-react";
+import { DatabaseServerSettings } from "@/components/DatabaseServerSettings";
 import { UserManagementDialog } from "@/components/UserManagementDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -255,6 +256,9 @@ export default function Settings() {
             </Button>
           </CardContent>
         </Card>
+
+        {/* Database Server Settings */}
+        <DatabaseServerSettings />
 
         {/* Users management */}
         <Card>
