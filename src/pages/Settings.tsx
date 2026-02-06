@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Settings2, Users, Database, FileText, Trash2, Info } from "lucide-react";
 import { DatabaseServerSettings } from "@/components/DatabaseServerSettings";
+import { DataExportSettings } from "@/components/DataExportSettings";
 import { UserManagementDialog } from "@/components/UserManagementDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -279,30 +280,8 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        {/* Import/Export */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Database className="h-5 w-5 text-primary" />
-              <CardTitle>Import / Export</CardTitle>
-            </div>
-            <CardDescription>
-              Importer et exporter les données de projets
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex gap-2">
-                <Button variant="outline">Importer ODS/Excel</Button>
-                <Button variant="outline">Exporter vers Excel</Button>
-                <Button variant="outline">Exporter PDF</Button>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Formats supportés: ODS, XLSX, CSV, PDF
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Data Export Settings */}
+        <DataExportSettings />
 
         {/* Audit Log */}
         <Card>
