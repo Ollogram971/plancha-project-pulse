@@ -35,7 +35,8 @@ interface ExternalServerConfig {
 export function DatabaseServerSettings() {
   const { toast } = useToast();
   const [isTesting, setIsTesting] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<"idle" | "success" | "error">("idle");
+  const [connectionStatus, setConnectionStatus] = useState<"idle" | "success" | "error" | "schema_error">("idle");
+  const [missingTables, setMissingTables] = useState<string[]>([]);
   const [lastTestTime, setLastTestTime] = useState<Date | null>(null);
   const [serverType, setServerType] = useState<ServerType>("supabase");
   const [showPassword, setShowPassword] = useState(false);
