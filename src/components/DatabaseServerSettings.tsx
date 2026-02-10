@@ -498,6 +498,33 @@ export function DatabaseServerSettings() {
             )}
           </Button>
         </div>
+        <Separator />
+
+        {/* Save Button */}
+        <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+          <div>
+            <p className="font-medium">Enregistrer la configuration</p>
+            <p className="text-sm text-muted-foreground">
+              Bascule l'application vers le serveur sélectionné
+            </p>
+          </div>
+          <Button 
+            onClick={saveConfig} 
+            disabled={!canSave() || isSaving}
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Enregistrement...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                Enregistrer
+              </>
+            )}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
