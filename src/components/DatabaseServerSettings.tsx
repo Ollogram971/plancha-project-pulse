@@ -87,13 +87,31 @@ export function DatabaseServerSettings() {
           throw new Error("Veuillez remplir tous les champs obligatoires.");
         }
         
-        // External server connection test is not yet implemented
-        setConnectionStatus("error");
+        // Call edge function to test real PostgreSQL connection
+        const { data, error: fnError } = await supabase.functions.invoke("test-db-connection", {
+          body: {
+            host: externalConfig.host,
+            port: externalConfig.port,
+            database: externalConfig.database,
+            username: externalConfig.username,
+            password: externalConfig.password,
+          },
+        });
+
+        if (fnError) {
+          throw new Error("Erreur lors de l'appel au service de test: " + fnError.message);
+        }
+
+        if (!data?.success) {
+          throw new Error(data?.error || "Connexion échouée.");
+        }
+
+        // Connection succeeded
+        setConnectionStatus("success");
         setLastTestTime(new Date());
         toast({
-          title: "Test non disponible",
-          description: "Le test de connexion à un serveur PostgreSQL externe n'est pas encore implémenté. La configuration a été enregistrée mais la connectivité n'a pas pu être vérifiée.",
-          variant: "destructive",
+          title: "Connexion réussie",
+          description: `Connecté à ${data.version || "PostgreSQL"}.`,
         });
         setIsTesting(false);
         return;
