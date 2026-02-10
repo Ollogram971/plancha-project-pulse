@@ -62,6 +62,16 @@ export function DatabaseServerSettings() {
     username: "",
     password: "",
   });
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Load saved config from localStorage on mount
+  useEffect(() => {
+    const saved = getSavedDbConfig();
+    setServerType(saved.activeServer);
+    if (saved.externalConfig) {
+      setExternalConfig(saved.externalConfig);
+    }
+  }, []);
 
   // Get current configuration from environment
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
