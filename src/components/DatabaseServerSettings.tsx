@@ -1,13 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Database, CheckCircle2, XCircle, Loader2, Server, Info, Eye, EyeOff } from "lucide-react";
+import { Database, CheckCircle2, XCircle, Loader2, Server, Info, Eye, EyeOff, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+
+const DB_CONFIG_KEY = "plancha_db_config";
+
+export interface SavedDbConfig {
+  activeServer: ServerType;
+  externalConfig?: ExternalServerConfig;
+}
+
+export function getSavedDbConfig(): SavedDbConfig {
+  try {
+    const raw = localStorage.getItem(DB_CONFIG_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return { activeServer: "supabase" };
+}
 import {
   Tooltip,
   TooltipContent,
@@ -47,6 +62,16 @@ export function DatabaseServerSettings() {
     username: "",
     password: "",
   });
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Load saved config from localStorage on mount
+  useEffect(() => {
+    const saved = getSavedDbConfig();
+    setServerType(saved.activeServer);
+    if (saved.externalConfig) {
+      setExternalConfig(saved.externalConfig);
+    }
+  }, []);
 
   // Get current configuration from environment
   const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
@@ -159,6 +184,30 @@ export function DatabaseServerSettings() {
 
   const isExternalConfigValid = () => {
     return externalConfig.host && externalConfig.port && externalConfig.database && externalConfig.username;
+  };
+
+  const canSave = () => {
+    if (serverType === "supabase") return connectionStatus === "success";
+    return connectionStatus === "success";
+  };
+
+  const saveConfig = () => {
+    setIsSaving(true);
+    const config: SavedDbConfig = {
+      activeServer: serverType,
+      externalConfig: serverType === "external" ? externalConfig : undefined,
+    };
+    localStorage.setItem(DB_CONFIG_KEY, JSON.stringify(config));
+    
+    const serverLabel = serverType === "supabase" 
+      ? "Supabase (Lovable Cloud)" 
+      : `serveur externe ${externalConfig.host}:${externalConfig.port}/${externalConfig.database}`;
+    
+    toast({
+      title: "Configuration enregistrée",
+      description: `L'application est désormais liée au ${serverLabel}.`,
+    });
+    setIsSaving(false);
   };
 
   const getStatusBadge = () => {
@@ -445,6 +494,33 @@ export function DatabaseServerSettings() {
               <>
                 <Database className="h-4 w-4 mr-2" />
                 Tester la connexion
+              </>
+            )}
+          </Button>
+        </div>
+        <Separator />
+
+        {/* Save Button */}
+        <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+          <div>
+            <p className="font-medium">Enregistrer la configuration</p>
+            <p className="text-sm text-muted-foreground">
+              Bascule l'application vers le serveur sélectionné
+            </p>
+          </div>
+          <Button 
+            onClick={saveConfig} 
+            disabled={!canSave() || isSaving}
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Enregistrement...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                Enregistrer
               </>
             )}
           </Button>
