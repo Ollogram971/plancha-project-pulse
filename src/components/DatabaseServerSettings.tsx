@@ -1,13 +1,28 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Database, CheckCircle2, XCircle, Loader2, Server, Info, Eye, EyeOff } from "lucide-react";
+import { Database, CheckCircle2, XCircle, Loader2, Server, Info, Eye, EyeOff, Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+
+const DB_CONFIG_KEY = "plancha_db_config";
+
+export interface SavedDbConfig {
+  activeServer: ServerType;
+  externalConfig?: ExternalServerConfig;
+}
+
+export function getSavedDbConfig(): SavedDbConfig {
+  try {
+    const raw = localStorage.getItem(DB_CONFIG_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return { activeServer: "supabase" };
+}
 import {
   Tooltip,
   TooltipContent,
