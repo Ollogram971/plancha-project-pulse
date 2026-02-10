@@ -9,51 +9,19 @@ export function ProjectImportSettings() {
     // Create template data with example row
     const templateData = [
       {
-        "Code*": "PROJ-001",
-        "Titre*": "Exemple de projet",
-        "Pôle (code)*": "DSI",
+        "Titre du projet*": "Restauration écologique zone humide",
+        "Pôle/Service (code)*": "DSI",
+        "Famille de thème": "Biodiversité",
         "Description": "Description détaillée du projet",
-        "Statut": "a_valider",
-        "Chef de projet (email)": "jean.dupont@example.com",
-        "Budget total (€)": 50000,
-        "Budget acquis (€)": 25000,
-        "Financement": "partiel",
-        "Date début prévisionnelle": "2025-03-01",
-        "Date démarrage": "",
-        "Date fin": "2025-12-31",
-        "Avancement (%)": 0,
-        "Faisabilité": "bon",
-        "Famille thématique": "Numérique",
-        "Partenaires (séparés par ;)": "Partenaire A; Partenaire B",
-        "Sources financement (séparées par ;)": "Région; Europe",
-        "Risques": "Risques potentiels identifiés",
-        "Liens (séparés par ;)": "https://example.com",
-        "ID EVA": "",
       },
     ];
 
     // Create empty rows for user to fill
     const emptyRows = Array(19).fill({
-      "Code*": "",
-      "Titre*": "",
-      "Pôle (code)*": "",
+      "Titre du projet*": "",
+      "Pôle/Service (code)*": "",
+      "Famille de thème": "",
       "Description": "",
-      "Statut": "",
-      "Chef de projet (email)": "",
-      "Budget total (€)": "",
-      "Budget acquis (€)": "",
-      "Financement": "",
-      "Date début prévisionnelle": "",
-      "Date démarrage": "",
-      "Date fin": "",
-      "Avancement (%)": "",
-      "Faisabilité": "",
-      "Famille thématique": "",
-      "Partenaires (séparés par ;)": "",
-      "Sources financement (séparées par ;)": "",
-      "Risques": "",
-      "Liens (séparés par ;)": "",
-      "ID EVA": "",
     });
 
     const allData = [...templateData, ...emptyRows];
@@ -63,26 +31,10 @@ export function ProjectImportSettings() {
 
     // Set column widths
     ws["!cols"] = [
-      { wch: 12 }, // Code
-      { wch: 35 }, // Titre
-      { wch: 15 }, // Pôle
-      { wch: 40 }, // Description
-      { wch: 12 }, // Statut
-      { wch: 28 }, // Chef de projet
-      { wch: 15 }, // Budget total
-      { wch: 15 }, // Budget acquis
-      { wch: 14 }, // Financement
-      { wch: 20 }, // Date début prév
-      { wch: 15 }, // Date démarrage
-      { wch: 12 }, // Date fin
-      { wch: 14 }, // Avancement
-      { wch: 12 }, // Faisabilité
-      { wch: 18 }, // Famille
-      { wch: 30 }, // Partenaires
-      { wch: 30 }, // Sources financement
-      { wch: 35 }, // Risques
-      { wch: 25 }, // Liens
-      { wch: 12 }, // ID EVA
+      { wch: 40 }, // Titre
+      { wch: 20 }, // Pôle
+      { wch: 25 }, // Famille de thème
+      { wch: 50 }, // Description
     ];
 
     // Create instructions sheet
