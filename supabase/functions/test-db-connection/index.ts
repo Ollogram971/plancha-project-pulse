@@ -5,6 +5,25 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
+const REQUIRED_TABLES = [
+  "app_settings",
+  "attachments",
+  "audit_log",
+  "comments",
+  "criteria",
+  "criterion_scales",
+  "poles",
+  "profiles",
+  "project_themes",
+  "projects",
+  "scores_calculated",
+  "scores_raw",
+  "themes",
+  "user_roles",
+  "weight_profiles",
+  "weights",
+];
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -20,7 +39,6 @@ serve(async (req) => {
       );
     }
 
-    // Attempt a real PostgreSQL connection using Deno's postgres driver
     const { Client } = await import("https://deno.land/x/postgres@v0.19.3/mod.ts");
 
     const client = new Client({
@@ -34,15 +52,27 @@ serve(async (req) => {
     });
 
     await client.connect();
-    
-    // Run a simple query to verify the connection works
-    const result = await client.queryObject("SELECT version()");
-    const version = (result.rows[0] as Record<string, string>)?.version || "PostgreSQL";
+
+    // Get version
+    const versionResult = await client.queryObject("SELECT version()");
+    const version = (versionResult.rows[0] as Record<string, string>)?.version || "PostgreSQL";
+
+    // Check for required tables
+    const tablesResult = await client.queryObject<{ tablename: string }>(
+      "SELECT tablename FROM pg_tables WHERE schemaname = 'public'"
+    );
+    const existingTables = tablesResult.rows.map(r => r.tablename);
+    const missingTables = REQUIRED_TABLES.filter(t => !existingTables.includes(t));
 
     await client.end();
 
     return new Response(
-      JSON.stringify({ success: true, version }),
+      JSON.stringify({
+        success: true,
+        version,
+        schema_valid: missingTables.length === 0,
+        missing_tables: missingTables,
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
