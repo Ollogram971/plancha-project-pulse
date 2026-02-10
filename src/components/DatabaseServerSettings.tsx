@@ -35,7 +35,8 @@ interface ExternalServerConfig {
 export function DatabaseServerSettings() {
   const { toast } = useToast();
   const [isTesting, setIsTesting] = useState(false);
-  const [connectionStatus, setConnectionStatus] = useState<"idle" | "success" | "error">("idle");
+  const [connectionStatus, setConnectionStatus] = useState<"idle" | "success" | "error" | "schema_error">("idle");
+  const [missingTables, setMissingTables] = useState<string[]>([]);
   const [lastTestTime, setLastTestTime] = useState<Date | null>(null);
   const [serverType, setServerType] = useState<ServerType>("supabase");
   const [showPassword, setShowPassword] = useState(false);
@@ -106,12 +107,27 @@ export function DatabaseServerSettings() {
           throw new Error(data?.error || "Connexion échouée.");
         }
 
-        // Connection succeeded
+        // Check schema validity
+        if (data.schema_valid === false && data.missing_tables?.length > 0) {
+          setConnectionStatus("schema_error");
+          setMissingTables(data.missing_tables);
+          setLastTestTime(new Date());
+          toast({
+            title: "Serveur OK, BD non conforme",
+            description: `Tables manquantes : ${data.missing_tables.join(", ")}`,
+            variant: "destructive",
+          });
+          setIsTesting(false);
+          return;
+        }
+
+        // Full success
+        setMissingTables([]);
         setConnectionStatus("success");
         setLastTestTime(new Date());
         toast({
           title: "Connexion réussie",
-          description: `Connecté à ${data.version || "PostgreSQL"}.`,
+          description: `Connecté à ${data.version || "PostgreSQL"}. Toutes les tables requises sont présentes.`,
         });
         setIsTesting(false);
         return;
@@ -152,6 +168,13 @@ export function DatabaseServerSettings() {
           <Badge variant="default" className="bg-green-600 hover:bg-green-700">
             <CheckCircle2 className="h-3 w-3 mr-1" />
             Connecté
+          </Badge>
+        );
+      case "schema_error":
+        return (
+          <Badge variant="default" className="bg-amber-500 hover:bg-amber-600 text-white">
+            <Info className="h-3 w-3 mr-1" />
+            Serveur OK, BD non conforme
           </Badge>
         );
       case "error":
@@ -382,6 +405,23 @@ export function DatabaseServerSettings() {
         )}
 
         <Separator />
+
+        {/* Missing tables alert */}
+        {connectionStatus === "schema_error" && missingTables.length > 0 && (
+          <div className="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-800 rounded-lg space-y-2">
+            <div className="flex items-center gap-2">
+              <XCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0" />
+              <p className="font-medium text-amber-800 dark:text-amber-200">
+                Base de données non conforme — {missingTables.length} table{missingTables.length > 1 ? "s" : ""} manquante{missingTables.length > 1 ? "s" : ""}
+              </p>
+            </div>
+            <ul className="ml-7 list-disc text-sm text-amber-700 dark:text-amber-300 space-y-0.5">
+              {missingTables.map((t) => (
+                <li key={t} className="font-mono">{t}</li>
+              ))}
+            </ul>
+          </div>
+        )}
 
         {/* Test Connection */}
         <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
