@@ -186,6 +186,30 @@ export function DatabaseServerSettings() {
     return externalConfig.host && externalConfig.port && externalConfig.database && externalConfig.username;
   };
 
+  const canSave = () => {
+    if (serverType === "supabase") return connectionStatus === "success";
+    return connectionStatus === "success";
+  };
+
+  const saveConfig = () => {
+    setIsSaving(true);
+    const config: SavedDbConfig = {
+      activeServer: serverType,
+      externalConfig: serverType === "external" ? externalConfig : undefined,
+    };
+    localStorage.setItem(DB_CONFIG_KEY, JSON.stringify(config));
+    
+    const serverLabel = serverType === "supabase" 
+      ? "Supabase (Lovable Cloud)" 
+      : `serveur externe ${externalConfig.host}:${externalConfig.port}/${externalConfig.database}`;
+    
+    toast({
+      title: "Configuration enregistrée",
+      description: `L'application est désormais liée au ${serverLabel}.`,
+    });
+    setIsSaving(false);
+  };
+
   const getStatusBadge = () => {
     switch (connectionStatus) {
       case "success":
