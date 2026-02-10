@@ -39,32 +39,18 @@ export function ProjectImportSettings() {
 
     // Create instructions sheet
     const instructionsData = [
-      { "Colonne": "Code*", "Description": "Code unique du projet (obligatoire)", "Valeurs possibles": "Texte libre (ex: PROJ-001)" },
-      { "Colonne": "Titre*", "Description": "Titre du projet (obligatoire)", "Valeurs possibles": "Texte libre" },
-      { "Colonne": "Pôle (code)*", "Description": "Code du pôle/service (obligatoire)", "Valeurs possibles": "Code existant dans l'application (ex: DSI, DRH)" },
-      { "Colonne": "Description", "Description": "Description détaillée du projet", "Valeurs possibles": "Texte libre" },
-      { "Colonne": "Statut", "Description": "Statut du projet", "Valeurs possibles": "a_valider | en_cours | archive" },
-      { "Colonne": "Chef de projet (email)", "Description": "Email du chef de projet", "Valeurs possibles": "Email d'un utilisateur existant" },
-      { "Colonne": "Budget total (€)", "Description": "Budget total en euros", "Valeurs possibles": "Nombre (ex: 50000)" },
-      { "Colonne": "Budget acquis (€)", "Description": "Budget déjà acquis en euros", "Valeurs possibles": "Nombre (ex: 25000)" },
-      { "Colonne": "Financement", "Description": "Statut du financement", "Valeurs possibles": "aucun | recherche_financement | partiel | complet" },
-      { "Colonne": "Date début prévisionnelle", "Description": "Date de début prévue", "Valeurs possibles": "Format AAAA-MM-JJ (ex: 2025-03-01)" },
-      { "Colonne": "Date démarrage", "Description": "Date de démarrage effectif", "Valeurs possibles": "Format AAAA-MM-JJ" },
-      { "Colonne": "Date fin", "Description": "Date de fin prévue", "Valeurs possibles": "Format AAAA-MM-JJ" },
-      { "Colonne": "Avancement (%)", "Description": "Pourcentage d'avancement", "Valeurs possibles": "Nombre entre 0 et 100" },
-      { "Colonne": "Faisabilité", "Description": "Niveau de faisabilité", "Valeurs possibles": "bloquant | mitige | bon | optimal" },
-      { "Colonne": "Famille thématique", "Description": "Famille thématique du projet", "Valeurs possibles": "Texte libre" },
-      { "Colonne": "Partenaires", "Description": "Liste des partenaires", "Valeurs possibles": "Séparés par point-virgule (;)" },
-      { "Colonne": "Sources financement", "Description": "Sources de financement", "Valeurs possibles": "Séparées par point-virgule (;)" },
-      { "Colonne": "Risques", "Description": "Risques identifiés", "Valeurs possibles": "Texte libre" },
-      { "Colonne": "Liens", "Description": "Liens utiles", "Valeurs possibles": "Séparés par point-virgule (;)" },
-      { "Colonne": "ID EVA", "Description": "Identifiant EVA externe", "Valeurs possibles": "Texte libre" },
+      { "Colonne": "Titre du projet*", "Description": "Titre du projet (obligatoire)", "Valeurs possibles": "Texte libre (min 3, max 200 caractères)" },
+      { "Colonne": "Pôle/Service (code)*", "Description": "Code du pôle/service (obligatoire)", "Valeurs possibles": "Code existant dans l'application (ex: DSI, DRH)" },
+      { "Colonne": "Famille de thème", "Description": "Famille thématique du projet", "Valeurs possibles": "Texte libre (ex: Biodiversité, Numérique)" },
+      { "Colonne": "Description", "Description": "Description détaillée du projet", "Valeurs possibles": "Texte libre (max 5000 caractères)" },
+      { "Colonne": "", "Description": "", "Valeurs possibles": "" },
+      { "Colonne": "Note", "Description": "Le code projet (PNG-AAAA-NNN) sera généré automatiquement lors de l'importation.", "Valeurs possibles": "" },
     ];
 
     const wsInstructions = XLSX.utils.json_to_sheet(instructionsData);
     wsInstructions["!cols"] = [
-      { wch: 28 },
-      { wch: 40 },
+      { wch: 25 },
+      { wch: 55 },
       { wch: 50 },
     ];
 
