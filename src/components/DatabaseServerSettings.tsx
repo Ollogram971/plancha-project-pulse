@@ -107,12 +107,27 @@ export function DatabaseServerSettings() {
           throw new Error(data?.error || "Connexion échouée.");
         }
 
-        // Connection succeeded
+        // Check schema validity
+        if (data.schema_valid === false && data.missing_tables?.length > 0) {
+          setConnectionStatus("schema_error");
+          setMissingTables(data.missing_tables);
+          setLastTestTime(new Date());
+          toast({
+            title: "Serveur OK, BD non conforme",
+            description: `Tables manquantes : ${data.missing_tables.join(", ")}`,
+            variant: "destructive",
+          });
+          setIsTesting(false);
+          return;
+        }
+
+        // Full success
+        setMissingTables([]);
         setConnectionStatus("success");
         setLastTestTime(new Date());
         toast({
           title: "Connexion réussie",
-          description: `Connecté à ${data.version || "PostgreSQL"}.`,
+          description: `Connecté à ${data.version || "PostgreSQL"}. Toutes les tables requises sont présentes.`,
         });
         setIsTesting(false);
         return;
