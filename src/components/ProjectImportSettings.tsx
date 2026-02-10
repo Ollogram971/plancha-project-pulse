@@ -122,7 +122,8 @@ export function ProjectImportSettings() {
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
             <strong>Important :</strong> Les colonnes marquées d'un astérisque (*) sont obligatoires. 
-            Assurez-vous que les codes de pôles correspondent à ceux existants dans l'application.
+            Assurez-vous que les codes de pôles correspondent à ceux existants dans l'application. 
+            Le code projet sera généré automatiquement à l'import.
           </AlertDescription>
         </Alert>
       </CardContent>
