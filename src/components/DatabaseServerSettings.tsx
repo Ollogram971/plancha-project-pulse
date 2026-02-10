@@ -82,19 +82,19 @@ export function DatabaseServerSettings() {
           throw error;
         }
       } else {
-        // For external server, we would need a backend function to test
-        // For now, we validate the form fields
+        // For external server, validate form fields first
         if (!externalConfig.host || !externalConfig.port || !externalConfig.database || !externalConfig.username) {
           throw new Error("Veuillez remplir tous les champs obligatoires.");
         }
         
-        // Simulate connection test (in real implementation, this would call an edge function)
-        toast({
-          title: "Configuration externe",
-          description: "La configuration du serveur externe a été enregistrée. Un test de connexion réel nécessite une fonction backend.",
-        });
-        setConnectionStatus("success");
+        // External server connection test is not yet implemented
+        setConnectionStatus("error");
         setLastTestTime(new Date());
+        toast({
+          title: "Test non disponible",
+          description: "Le test de connexion à un serveur PostgreSQL externe n'est pas encore implémenté. La configuration a été enregistrée mais la connectivité n'a pas pu être vérifiée.",
+          variant: "destructive",
+        });
         setIsTesting(false);
         return;
       }
