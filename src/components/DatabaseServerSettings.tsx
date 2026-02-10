@@ -170,6 +170,13 @@ export function DatabaseServerSettings() {
             Connecté
           </Badge>
         );
+      case "schema_error":
+        return (
+          <Badge variant="default" className="bg-amber-500 hover:bg-amber-600 text-white">
+            <Info className="h-3 w-3 mr-1" />
+            Serveur OK, BD non conforme
+          </Badge>
+        );
       case "error":
         return (
           <Badge variant="destructive">
