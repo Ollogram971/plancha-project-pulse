@@ -406,6 +406,23 @@ export function DatabaseServerSettings() {
 
         <Separator />
 
+        {/* Missing tables alert */}
+        {connectionStatus === "schema_error" && missingTables.length > 0 && (
+          <div className="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-300 dark:border-amber-800 rounded-lg space-y-2">
+            <div className="flex items-center gap-2">
+              <XCircle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0" />
+              <p className="font-medium text-amber-800 dark:text-amber-200">
+                Base de données non conforme — {missingTables.length} table{missingTables.length > 1 ? "s" : ""} manquante{missingTables.length > 1 ? "s" : ""}
+              </p>
+            </div>
+            <ul className="ml-7 list-disc text-sm text-amber-700 dark:text-amber-300 space-y-0.5">
+              {missingTables.map((t) => (
+                <li key={t} className="font-mono">{t}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         {/* Test Connection */}
         <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
           <div>
