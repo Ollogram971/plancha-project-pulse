@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { LayoutDashboard, FolderKanban, Settings, Menu, LogOut, HelpCircle, Download, MessageCircle, Info, Weight } from "lucide-react";
 import spiraleLogo from "@/assets/spirale_rose.png";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const [passwordDialogOpen, setPasswordDialogOpen] = useState(false);
   const { signOut, user } = useAuth();
   const { isAdmin } = useIsAdmin();
+  const navigate = useNavigate();
 
   // Build complete navigation based on user role
   const completeNavigation = [
@@ -89,7 +90,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     Télécharger le mode d'emploi
                   </button>
                   <button
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      navigate("/faq");
+                    }}
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   >
                     <MessageCircle className="h-4 w-4" />
@@ -152,7 +156,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   <Download className="mr-2 h-4 w-4" />
                   Télécharger le mode d'emploi
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/faq")}>
                   <MessageCircle className="mr-2 h-4 w-4" />
                   FAQ
                 </DropdownMenuItem>
