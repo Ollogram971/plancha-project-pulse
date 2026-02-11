@@ -16,6 +16,9 @@ import { useIsAdmin } from "@/hooks/useUserRole";
 import { PasswordChangeDialog } from "@/components/PasswordChangeDialog";
 import { ExpiredProjectsAlert } from "@/components/ExpiredProjectsAlert";
 import { User, KeyRound } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { generateDefaultManualPdf } from "@/utils/generateDefaultManual";
 
 const navigation = [
   { name: "Tableau de bord", href: "/", icon: LayoutDashboard },
@@ -39,6 +42,39 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const { signOut, user } = useAuth();
   const { isAdmin } = useIsAdmin();
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleDownloadManual = async () => {
+    try {
+      // Try to download from storage bucket first
+      const { data, error } = await supabase.storage
+        .from("user-manual")
+        .download("mode-emploi-plancha.pdf");
+
+      let blob: Blob;
+      if (error || !data) {
+        // Fallback: generate default PDF on the fly
+        blob = generateDefaultManualPdf();
+      } else {
+        blob = data;
+      }
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "Mode-emploi-PLANCHA.pdf";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch {
+      toast({
+        title: "Erreur",
+        description: "Impossible de télécharger le mode d'emploi.",
+        variant: "destructive",
+      });
+    }
+  };
 
   // Build complete navigation based on user role
   const completeNavigation = [
@@ -83,7 +119,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 <div className="mt-4 pt-4 border-t">
                   <div className="px-3 py-2 text-sm font-semibold text-foreground">Aide</div>
                   <button
-                    onClick={() => setMobileMenuOpen(false)}
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      handleDownloadManual();
+                    }}
                     className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent hover:text-accent-foreground"
                   >
                     <Download className="h-4 w-4" />
@@ -152,7 +191,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDownloadManual}>
                   <Download className="mr-2 h-4 w-4" />
                   Télécharger le mode d'emploi
                 </DropdownMenuItem>
