@@ -7,6 +7,7 @@ import { Settings2, Users, Database, FileText, Trash2, Info } from "lucide-react
 import { DatabaseServerSettings } from "@/components/DatabaseServerSettings";
 import { DataExportSettings } from "@/components/DataExportSettings";
 import { ProjectImportSettings } from "@/components/ProjectImportSettings";
+import { UserManualSettings } from "@/components/UserManualSettings";
 import { UserManagementDialog } from "@/components/UserManagementDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -286,6 +287,9 @@ export default function Settings() {
 
         {/* Data Export Settings */}
         <DataExportSettings />
+
+        {/* User Manual Settings */}
+        <UserManualSettings />
 
         {/* Audit Log */}
         <Card>
