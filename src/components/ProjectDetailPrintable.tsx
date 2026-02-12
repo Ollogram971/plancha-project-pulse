@@ -25,6 +25,7 @@ interface ProjectDetailPrintableProps {
   };
   activeWeights?: any[];
   projectScores?: any[];
+  allScales?: any[];
 }
 
 const formatStatus = (status: string) => {
@@ -49,19 +50,23 @@ const getStatusClass = (status: string) => {
   }
 };
 
-const getScoreLabel = (score: number) => {
-  switch (score) {
-    case 0: return "0 - Non applicable";
-    case 1: return "1 - Faible";
-    case 2: return "2 - Moyen";
-    case 3: return "3 - Bon";
-    case 4: return "4 - Excellent";
-    default: return "-";
+const getScoreLabel = (score: number, criterionId?: string, allScales?: any[]) => {
+  if (criterionId && allScales) {
+    const scale = allScales.find(
+      (s: any) => s.criterion_id === criterionId && s.score_value === score
+    );
+    if (scale?.description && scale.description !== "Non défini") {
+      return `${score} - ${scale.description}`;
+    }
   }
+  const defaultLabels: Record<number, string> = {
+    0: "Non applicable", 1: "Faible", 2: "Moyen", 3: "Bon", 4: "Excellent",
+  };
+  return defaultLabels[score] !== undefined ? `${score} - ${defaultLabels[score]}` : "-";
 };
 
 export const ProjectDetailPrintable = forwardRef<HTMLDivElement, ProjectDetailPrintableProps>(
-  ({ project, activeWeights, projectScores }, ref) => {
+  ({ project, activeWeights, projectScores, allScales }, ref) => {
     const today = new Date().toLocaleDateString('fr-FR', {
       day: '2-digit',
       month: '2-digit',
@@ -278,7 +283,7 @@ export const ProjectDetailPrintable = forwardRef<HTMLDivElement, ProjectDetailPr
                       </div>
                       <span style={{ fontSize: '11px', color: '#666' }}>= {(scoreValue * 25).toFixed(2)}</span>
                     </div>
-                    <p className="print-criterion-score">{getScoreLabel(scoreValue)}</p>
+                    <p className="print-criterion-score">{getScoreLabel(scoreValue, weight.criterion_id, allScales)}</p>
                   </div>
                 );
               })}

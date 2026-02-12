@@ -97,15 +97,32 @@ export default function ProjectDetail() {
     },
   });
 
-  const getScoreLabel = (score: number) => {
-    switch (score) {
-      case 0: return "0 - Non applicable";
-      case 1: return "1 - Faible";
-      case 2: return "2 - Moyen";
-      case 3: return "3 - Bon";
-      case 4: return "4 - Excellent";
-      default: return "-";
+  // Fetch all criterion scales for labels
+  const { data: allScales } = useQuery({
+    queryKey: ["all-criterion-scales"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("criterion_scales")
+        .select("*")
+        .order("score_value");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const getScoreLabel = (score: number, criterionId?: string) => {
+    if (criterionId && allScales) {
+      const scale = allScales.find(
+        (s) => s.criterion_id === criterionId && s.score_value === score
+      );
+      if (scale?.description && scale.description !== "Non défini") {
+        return `${score} - ${scale.description}`;
+      }
     }
+    const defaultLabels: Record<number, string> = {
+      0: "Non applicable", 1: "Faible", 2: "Moyen", 3: "Bon", 4: "Excellent",
+    };
+    return defaultLabels[score] !== undefined ? `${score} - ${defaultLabels[score]}` : "-";
   };
 
   if (isLoading) {
@@ -358,7 +375,7 @@ export default function ProjectDetail() {
                       </p>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <p className="text-muted-foreground">{getScoreLabel(scoreValue)}</p>
+                      <p className="text-muted-foreground">{getScoreLabel(scoreValue, weight.criterion_id)}</p>
                     </div>
                   </div>
                 );
@@ -420,6 +437,7 @@ export default function ProjectDetail() {
         project={project}
         activeWeights={activeWeights}
         projectScores={projectScores}
+        allScales={allScales}
       />
     </div>
   );
