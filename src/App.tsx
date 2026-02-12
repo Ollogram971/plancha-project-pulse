@@ -16,6 +16,7 @@ import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import FAQ from "./pages/FAQ";
+import CompleteProfile from "./pages/CompleteProfile";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,14 @@ function App() {
           <AuthProvider>
             <Routes>
               <Route path="/auth" element={<Auth />} />
+              <Route
+                path="/complete-profile"
+                element={
+                  <ProtectedRoute>
+                    <CompleteProfile />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/"
                 element={
