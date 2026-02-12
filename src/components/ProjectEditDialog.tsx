@@ -156,6 +156,19 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
     },
   });
 
+  // Fetch all criterion scales for dropdown labels
+  const { data: allScales } = useQuery({
+    queryKey: ["all-criterion-scales"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("criterion_scales")
+        .select("*")
+        .order("score_value");
+      if (error) throw error;
+      return data;
+    },
+  });
+
   const { data: weights } = useQuery({
     queryKey: ["weights"],
     queryFn: async () => {
@@ -595,11 +608,22 @@ export function ProjectEditDialog({ open, onOpenChange, project }: ProjectEditDi
                         <SelectValue placeholder="Sélectionner un score" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="0">0 - Non défini</SelectItem>
-                        <SelectItem value="1">1 - Faible</SelectItem>
-                        <SelectItem value="2">2 - Moyen</SelectItem>
-                        <SelectItem value="3">3 - Bon</SelectItem>
-                        <SelectItem value="4">4 - Excellent</SelectItem>
+                        {[0, 1, 2, 3, 4].map((scoreVal) => {
+                          const scale = allScales?.find(
+                            (s) => s.criterion_id === criterion.id && s.score_value === scoreVal
+                          );
+                          const defaultLabels: Record<number, string> = {
+                            0: "Non défini", 1: "Faible", 2: "Moyen", 3: "Bon", 4: "Excellent",
+                          };
+                          const label = scale?.description && scale.description !== "Non défini"
+                            ? scale.description
+                            : defaultLabels[scoreVal];
+                          return (
+                            <SelectItem key={scoreVal} value={scoreVal.toString()}>
+                              {scoreVal} - {label}
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                   </div>
