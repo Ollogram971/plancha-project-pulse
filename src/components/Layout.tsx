@@ -19,6 +19,7 @@ import { User, KeyRound } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { generateDefaultManualPdf } from "@/utils/generateDefaultManual";
+import { useQuery } from "@tanstack/react-query";
 
 const navigation = [
   { name: "Tableau de bord", href: "/", icon: LayoutDashboard },
@@ -44,6 +45,22 @@ export function Layout({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Fetch user's display name from profiles table
+  const { data: profile } = useQuery({
+    queryKey: ["user-profile", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .single();
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  const displayName = profile?.full_name || user?.user_metadata?.full_name || user?.email || "";
   const handleDownloadManual = async () => {
     try {
       // Try to download from storage bucket first
@@ -212,7 +229,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="gap-2 hidden sm:flex">
                   <User className="h-4 w-4" />
-                  <span className="text-sm">{user?.email}</span>
+                  <span className="text-sm">{displayName}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
