@@ -105,12 +105,12 @@ export function UserManagementDialog() {
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
-      const { error } = await supabase
-        .from("user_roles")
-        .delete()
-        .eq("user_id", userId);
-      
+      const { data, error } = await supabase.functions.invoke("delete-user", {
+        body: { userId },
+      });
+
       if (error) throw error;
+      if ((data as any)?.error) throw new Error((data as any).error);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users-with-roles"] });
