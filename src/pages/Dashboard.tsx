@@ -163,7 +163,7 @@ export default function Dashboard() {
           <CardContent>
             <div className="text-2xl font-bold">{stats.projectsNeedingAttention}</div>
             <p className="text-xs text-muted-foreground">
-              projets en attente
+              projets à valider
             </p>
           </CardContent>
         </Card>
