@@ -17,13 +17,11 @@ function json(status: number, body: unknown) {
 }
 
 function isValidEmail(email: string) {
-  // Practical validation (not RFC-perfect) + length limit
   if (email.length > 254) return false;
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -48,7 +46,7 @@ serve(async (req) => {
       return json(401, { error: "Unauthorized" });
     }
 
-    const { email, role } = (await req.json()) as { email?: string; role?: AppRole };
+    const { email, role, full_name } = (await req.json()) as { email?: string; role?: AppRole; full_name?: string };
 
     if (!email || !isValidEmail(email)) {
       return json(400, { error: "Invalid email" });
@@ -59,7 +57,13 @@ serve(async (req) => {
       return json(400, { error: "Invalid role" });
     }
 
-    // Verify caller identity (publishable client)
+    if (!full_name || full_name.trim().length === 0) {
+      return json(400, { error: "Le nom est requis" });
+    }
+
+    const trimmedName = full_name.trim().substring(0, 200);
+
+    // Verify caller identity
     const supabaseAuth = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
       auth: { persistSession: false },
     });
@@ -74,7 +78,7 @@ serve(async (req) => {
       return json(401, { error: "Unauthorized" });
     }
 
-    // Admin client for privileged operations
+    // Admin client
     const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
       auth: { persistSession: false },
     });
@@ -96,9 +100,11 @@ serve(async (req) => {
       return json(403, { error: "Forbidden" });
     }
 
-    // Invite the user
+    // Invite the user with metadata
     const { data: inviteData, error: inviteError } =
-      await supabaseAdmin.auth.admin.inviteUserByEmail(email);
+      await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+        data: { full_name: trimmedName },
+      });
 
     if (inviteError || !inviteData?.user?.id) {
       console.error("Invite failed", inviteError);
@@ -106,6 +112,12 @@ serve(async (req) => {
     }
 
     const invitedUserId = inviteData.user.id;
+
+    // Update profile with name
+    await supabaseAdmin
+      .from("profiles")
+      .update({ full_name: trimmedName })
+      .eq("id", invitedUserId);
 
     // Ensure a single role row for this user
     const { error: deleteRoleError } = await supabaseAdmin

@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Trash2, UserPlus } from "lucide-react";
+import { Trash2, UserPlus, Pencil, Check, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 type AppRole = "admin" | "validateur" | "contributeur" | "lecteur";
@@ -24,7 +24,11 @@ interface UserWithRole {
 export function UserManagementDialog() {
   const [open, setOpen] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteName, setInviteName] = useState("");
   const [inviteRole, setInviteRole] = useState<AppRole>("lecteur");
+  const [editingUserId, setEditingUserId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -36,7 +40,6 @@ export function UserManagementDialog() {
         .from("users_with_roles")
         .select("*")
         .order("email");
-      
       if (error) throw error;
       return data as UserWithRole[];
     },
@@ -44,159 +47,149 @@ export function UserManagementDialog() {
 
   const updateRoleMutation = useMutation({
     mutationFn: async ({ userId, newRole }: { userId: string; newRole: AppRole }) => {
-      // Delete existing role
       const { error: deleteError } = await supabase
         .from("user_roles")
         .delete()
         .eq("user_id", userId);
-      
       if (deleteError) throw deleteError;
 
-      // Insert new role
       const { error: insertError } = await supabase
         .from("user_roles")
         .insert({ user_id: userId, role: newRole });
-      
       if (insertError) throw insertError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users-with-roles"] });
-      toast({
-        title: "Rôle mis à jour",
-        description: "Le rôle de l'utilisateur a été modifié avec succès.",
-      });
+      toast({ title: "Rôle mis à jour", description: "Le rôle de l'utilisateur a été modifié avec succès." });
     },
     onError: (error) => {
-      toast({
-        title: "Erreur",
-        description: "Impossible de mettre à jour le rôle.",
-        variant: "destructive",
-      });
+      toast({ title: "Erreur", description: "Impossible de mettre à jour le rôle.", variant: "destructive" });
       console.error("Error updating role:", error);
     },
   });
 
+  const updateProfileMutation = useMutation({
+    mutationFn: async ({ userId, fullName, email }: { userId: string; fullName: string; email: string }) => {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ full_name: fullName, email })
+        .eq("id", userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users-with-roles"] });
+      setEditingUserId(null);
+      toast({ title: "Profil mis à jour", description: "Le nom et l'email ont été modifiés avec succès." });
+    },
+    onError: (error) => {
+      toast({ title: "Erreur", description: "Impossible de mettre à jour le profil.", variant: "destructive" });
+      console.error("Error updating profile:", error);
+    },
+  });
+
   const handleDeleteUser = (userId: string, userRole: AppRole | null) => {
-    // Vérifier si l'utilisateur essaie de supprimer son propre compte
     if (user?.id === userId) {
-      toast({
-        title: "Action non autorisée",
-        description: "Vous ne pouvez pas supprimer votre propre compte.",
-        variant: "destructive",
-      });
+      toast({ title: "Action non autorisée", description: "Vous ne pouvez pas supprimer votre propre compte.", variant: "destructive" });
       return;
     }
-
-    // Si c'est un admin, vérifier qu'il reste au moins un autre admin
     if (userRole === "admin") {
       const adminCount = users?.filter(u => u.role === "admin").length || 0;
       if (adminCount <= 1) {
-        toast({
-          title: "Action non autorisée",
-          description: "Il doit rester au moins un compte administrateur dans le système.",
-          variant: "destructive",
-        });
+        toast({ title: "Action non autorisée", description: "Il doit rester au moins un compte administrateur dans le système.", variant: "destructive" });
         return;
       }
     }
-
     deleteUserMutation.mutate(userId);
   };
 
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: string) => {
-      const { data, error } = await supabase.functions.invoke("delete-user", {
-        body: { userId },
-      });
-
+      const { data, error } = await supabase.functions.invoke("delete-user", { body: { userId } });
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users-with-roles"] });
-      toast({
-        title: "Utilisateur supprimé",
-        description: "L'utilisateur a été retiré avec succès.",
-      });
+      toast({ title: "Utilisateur supprimé", description: "L'utilisateur a été retiré avec succès." });
     },
     onError: (error) => {
-      toast({
-        title: "Erreur",
-        description: "Impossible de supprimer l'utilisateur.",
-        variant: "destructive",
-      });
+      toast({ title: "Erreur", description: "Impossible de supprimer l'utilisateur.", variant: "destructive" });
       console.error("Error deleting user:", error);
     },
   });
 
   const inviteUserMutation = useMutation({
-    mutationFn: async ({ email, role }: { email: string; role: AppRole }) => {
+    mutationFn: async ({ email, role, full_name }: { email: string; role: AppRole; full_name: string }) => {
       const { data, error } = await supabase.functions.invoke("invite-user", {
-        body: { email, role },
+        body: { email, role, full_name },
       });
-
       if (error) throw error;
       if ((data as any)?.error) throw new Error((data as any).error);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users-with-roles"] });
       setInviteEmail("");
+      setInviteName("");
       setInviteRole("lecteur");
-      toast({
-        title: "Invitation envoyée",
-        description: "L'utilisateur recevra un email pour créer son compte.",
-      });
+      toast({ title: "Invitation envoyée", description: "L'utilisateur recevra un email pour créer son compte." });
     },
     onError: (error) => {
-      toast({
-        title: "Erreur",
-        description: "Impossible d'inviter l'utilisateur. Vérifiez l'email et réessayez.",
-        variant: "destructive",
-      });
+      toast({ title: "Erreur", description: "Impossible d'inviter l'utilisateur. Vérifiez les informations et réessayez.", variant: "destructive" });
       console.error("Error inviting user:", error);
     },
   });
 
   const handleInviteUser = () => {
-    if (!inviteEmail) {
-      toast({
-        title: "Email requis",
-        description: "Veuillez entrer une adresse email valide.",
-        variant: "destructive",
-      });
+    if (!inviteName.trim()) {
+      toast({ title: "Nom requis", description: "Veuillez entrer le nom de l'utilisateur.", variant: "destructive" });
       return;
     }
+    if (!inviteEmail) {
+      toast({ title: "Email requis", description: "Veuillez entrer une adresse email valide.", variant: "destructive" });
+      return;
+    }
+    inviteUserMutation.mutate({ email: inviteEmail, role: inviteRole, full_name: inviteName });
+  };
 
-    inviteUserMutation.mutate({ email: inviteEmail, role: inviteRole });
+  const startEditing = (u: UserWithRole) => {
+    setEditingUserId(u.id);
+    setEditName(u.full_name || "");
+    setEditEmail(u.email || "");
+  };
+
+  const cancelEditing = () => {
+    setEditingUserId(null);
+  };
+
+  const saveEditing = (userId: string) => {
+    if (!editName.trim()) {
+      toast({ title: "Nom requis", description: "Le nom ne peut pas être vide.", variant: "destructive" });
+      return;
+    }
+    if (!editEmail.trim()) {
+      toast({ title: "Email requis", description: "L'email ne peut pas être vide.", variant: "destructive" });
+      return;
+    }
+    updateProfileMutation.mutate({ userId, fullName: editName.trim(), email: editEmail.trim() });
   };
 
   const getRoleBadgeVariant = (role: AppRole | null) => {
     switch (role) {
-      case "admin":
-        return "default";
-      case "validateur":
-        return "default";
-      case "contributeur":
-        return "secondary";
-      case "lecteur":
-        return "outline";
-      default:
-        return "outline";
+      case "admin": return "default";
+      case "validateur": return "default";
+      case "contributeur": return "secondary";
+      case "lecteur": return "outline";
+      default: return "outline";
     }
   };
 
   const getRoleLabel = (role: AppRole | null) => {
     switch (role) {
-      case "admin":
-        return "Administrateur";
-      case "validateur":
-        return "Validateur";
-      case "contributeur":
-        return "Contributeur";
-      case "lecteur":
-        return "Lecteur";
-      default:
-        return "Aucun rôle";
+      case "admin": return "Administrateur";
+      case "validateur": return "Validateur";
+      case "contributeur": return "Contributeur";
+      case "lecteur": return "Lecteur";
+      default: return "Aucun rôle";
     }
   };
 
@@ -220,9 +213,19 @@ export function UserManagementDialog() {
               <UserPlus className="h-4 w-4" />
               Inviter un nouvel utilisateur
             </h3>
-            <div className="grid gap-4 sm:grid-cols-[1fr,auto,auto]">
+            <div className="grid gap-4 sm:grid-cols-[1fr,1fr,auto,auto]">
               <div className="space-y-2">
-                <Label htmlFor="invite-email">Email</Label>
+                <Label htmlFor="invite-name">Nom <span className="text-destructive">*</span></Label>
+                <Input
+                  id="invite-name"
+                  type="text"
+                  placeholder="Prénom NOM"
+                  value={inviteName}
+                  onChange={(e) => setInviteName(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="invite-email">Email <span className="text-destructive">*</span></Label>
                 <Input
                   id="invite-email"
                   type="email"
@@ -246,7 +249,7 @@ export function UserManagementDialog() {
                 </Select>
               </div>
               <div className="flex items-end">
-                <Button 
+                <Button
                   onClick={handleInviteUser}
                   disabled={inviteUserMutation.isPending}
                 >
@@ -269,24 +272,44 @@ export function UserManagementDialog() {
                       <TableHead>Email</TableHead>
                       <TableHead>Nom</TableHead>
                       <TableHead>Rôle</TableHead>
-                      <TableHead className="w-[100px]">Actions</TableHead>
+                      <TableHead className="w-[120px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {users?.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium">{user.email}</TableCell>
-                        <TableCell>{user.full_name || "-"}</TableCell>
+                    {users?.map((u) => (
+                      <TableRow key={u.id}>
+                        <TableCell className="font-medium">
+                          {editingUserId === u.id ? (
+                            <Input
+                              value={editEmail}
+                              onChange={(e) => setEditEmail(e.target.value)}
+                              className="h-8"
+                            />
+                          ) : (
+                            u.email
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {editingUserId === u.id ? (
+                            <Input
+                              value={editName}
+                              onChange={(e) => setEditName(e.target.value)}
+                              className="h-8"
+                            />
+                          ) : (
+                            u.full_name || "-"
+                          )}
+                        </TableCell>
                         <TableCell>
                           <Select
-                            value={user.role || "lecteur"}
-                            onValueChange={(value: AppRole) => 
-                              updateRoleMutation.mutate({ userId: user.id, newRole: value })
+                            value={u.role || "lecteur"}
+                            onValueChange={(value: AppRole) =>
+                              updateRoleMutation.mutate({ userId: u.id, newRole: value })
                             }
                           >
                             <SelectTrigger className="w-[160px]">
-                              <Badge variant={getRoleBadgeVariant(user.role)}>
-                                {getRoleLabel(user.role)}
+                              <Badge variant={getRoleBadgeVariant(u.role)}>
+                                {getRoleLabel(u.role)}
                               </Badge>
                             </SelectTrigger>
                             <SelectContent>
@@ -298,14 +321,45 @@ export function UserManagementDialog() {
                           </Select>
                         </TableCell>
                         <TableCell>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDeleteUser(user.id, user.role)}
-                            disabled={deleteUserMutation.isPending}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            {editingUserId === u.id ? (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => saveEditing(u.id)}
+                                  disabled={updateProfileMutation.isPending}
+                                >
+                                  <Check className="h-4 w-4 text-primary" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={cancelEditing}
+                                >
+                                  <X className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </>
+                            ) : (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => startEditing(u)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleDeleteUser(u.id, u.role)}
+                                  disabled={deleteUserMutation.isPending}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
