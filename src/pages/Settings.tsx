@@ -376,7 +376,7 @@ export default function Settings() {
                             {log.profiles?.full_name || log.profiles?.email || "Système"}
                           </TableCell>
                           <TableCell className="text-sm">
-                            <span className="capitalize">{log.action}</span>
+                            {(log as any).action_display || log.action}
                           </TableCell>
                           <TableCell className="text-sm">
                             {log.entity_display}
