@@ -1,9 +1,17 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.81.1";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
+
+function json(status: number, body: unknown) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'Content-Type': 'application/json', ...corsHeaders },
+  });
+}
 
 const REQUIRED_TABLES = [
   "app_settings",
@@ -30,6 +38,42 @@ serve(async (req) => {
   }
 
   try {
+    // --- Admin auth check ---
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")?.trim();
+    const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")?.trim();
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")?.trim();
+
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !SUPABASE_SERVICE_ROLE_KEY) {
+      return json(500, { success: false, error: "Server misconfiguration" });
+    }
+
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) return json(401, { success: false, error: "Unauthorized" });
+
+    const token = authHeader.replace(/^Bearer\s+/i, "").trim();
+    if (!token) return json(401, { success: false, error: "Unauthorized" });
+
+    const supabaseAuth = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: false },
+    });
+    const { data: { user: caller }, error: authError } = await supabaseAuth.auth.getUser(token);
+    if (authError || !caller) return json(401, { success: false, error: "Unauthorized" });
+
+    const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { persistSession: false },
+    });
+    const { data: adminRows } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", caller.id)
+      .eq("role", "admin")
+      .limit(1);
+
+    if (!adminRows || adminRows.length === 0) {
+      return json(403, { success: false, error: "Forbidden" });
+    }
+    // --- End auth check ---
+
     const { host, port, database, username, password } = await req.json();
 
     if (!host || !port || !database || !username) {
