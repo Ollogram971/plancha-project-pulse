@@ -193,11 +193,17 @@ export function DatabaseServerSettings() {
 
   const saveConfig = () => {
     setIsSaving(true);
-    const config: SavedDbConfig = {
+    const configToSave: SavedDbConfig = {
       activeServer: serverType,
-      externalConfig: serverType === "external" ? externalConfig : undefined,
+      externalConfig: serverType === "external" ? {
+        host: externalConfig.host,
+        port: externalConfig.port,
+        database: externalConfig.database,
+        username: externalConfig.username,
+        // password is intentionally omitted for security
+      } as ExternalServerConfig : undefined,
     };
-    localStorage.setItem(DB_CONFIG_KEY, JSON.stringify(config));
+    localStorage.setItem(DB_CONFIG_KEY, JSON.stringify(configToSave));
     
     const serverLabel = serverType === "supabase" 
       ? "Supabase (Lovable Cloud)" 
