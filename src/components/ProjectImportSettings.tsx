@@ -51,6 +51,17 @@ export function ProjectImportSettings() {
       "Description": "",
     });
 
+    const allData = [...templateData, ...emptyRows];
+
+    const instructionsData = [
+      { "Colonne": "Titre du projet*", "Description": "Titre du projet (obligatoire)", "Valeurs possibles": "Texte libre (min 3, max 200 caractères)" },
+      { "Colonne": "Pôle/Service (code)*", "Description": "Code du pôle/service (obligatoire)", "Valeurs possibles": "Code existant dans l'application (ex: DSI, DRH)" },
+      { "Colonne": "Famille de thème", "Description": "Famille thématique du projet", "Valeurs possibles": "Texte libre (ex: Biodiversité, Numérique)" },
+      { "Colonne": "Description", "Description": "Description détaillée du projet", "Valeurs possibles": "Texte libre (max 5000 caractères)" },
+      { "Colonne": "", "Description": "", "Valeurs possibles": "" },
+      { "Colonne": "Note", "Description": "Le code projet (PNG-AAAA-NNN) sera généré automatiquement lors de l'importation.", "Valeurs possibles": "" },
+    ];
+
     const wb = new ExcelJS.Workbook();
     
     // Projects sheet
