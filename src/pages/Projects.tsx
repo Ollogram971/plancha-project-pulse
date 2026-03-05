@@ -115,7 +115,7 @@ export default function Projects() {
     window.print();
   };
 
-  const handleExportXLS = () => {
+  const handleExportXLS = async () => {
     if (!filteredProjects || filteredProjects.length === 0) return;
 
     const data = filteredProjects.map((project, index) => ({

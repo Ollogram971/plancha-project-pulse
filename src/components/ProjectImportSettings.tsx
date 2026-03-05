@@ -34,7 +34,7 @@ export function ProjectImportSettings() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const handleDownloadTemplate = () => {
+  const handleDownloadTemplate = async () => {
     const templateData = [
       {
         "Titre du projet*": "Restauration écologique zone humide",
