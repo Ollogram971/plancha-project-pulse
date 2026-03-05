@@ -139,6 +139,15 @@ serve(async (req) => {
       return json(500, { error: "Failed to assign role" });
     }
 
+    // Audit log: user invitation
+    await supabaseAdmin.from("audit_log").insert({
+      action: "invitation",
+      entite: "profiles",
+      entite_id: invitedUserId,
+      author_id: user.id,
+      diff_json: { email, role, full_name: trimmedName },
+    });
+
     return json(200, { success: true });
   } catch (error) {
     console.error("invite-user error", error);

@@ -47,7 +47,7 @@ export function UserManagementDialog() {
   });
 
   const updateRoleMutation = useMutation({
-    mutationFn: async ({ userId, newRole }: { userId: string; newRole: AppRole }) => {
+    mutationFn: async ({ userId, newRole, oldRole, userName }: { userId: string; newRole: AppRole; oldRole?: AppRole | null; userName?: string | null }) => {
       const { error: deleteError } = await supabase
         .from("user_roles")
         .delete()
@@ -58,6 +58,15 @@ export function UserManagementDialog() {
         .from("user_roles")
         .insert({ user_id: userId, role: newRole });
       if (insertError) throw insertError;
+
+      // Audit log: role change
+      await supabase.from("audit_log").insert({
+        action: "modification",
+        entite: "user_roles",
+        entite_id: userId,
+        author_id: user?.id ?? null,
+        diff_json: { old: { role: oldRole }, new: { role: newRole }, full_name: userName },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users-with-roles"] });
@@ -70,12 +79,21 @@ export function UserManagementDialog() {
   });
 
   const updateProfileMutation = useMutation({
-    mutationFn: async ({ userId, fullName, email }: { userId: string; fullName: string; email: string }) => {
+    mutationFn: async ({ userId, fullName, email, oldName, oldEmail }: { userId: string; fullName: string; email: string; oldName?: string | null; oldEmail?: string | null }) => {
       const { error } = await supabase
         .from("profiles")
         .update({ full_name: fullName, email })
         .eq("id", userId);
       if (error) throw error;
+
+      // Audit log: profile edit
+      await supabase.from("audit_log").insert({
+        action: "modification",
+        entite: "profiles",
+        entite_id: userId,
+        author_id: user?.id ?? null,
+        diff_json: { old: { full_name: oldName, email: oldEmail }, new: { full_name: fullName, email } },
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users-with-roles"] });
@@ -170,7 +188,7 @@ export function UserManagementDialog() {
       toast({ title: "Email requis", description: "L'email ne peut pas être vide.", variant: "destructive" });
       return;
     }
-    updateProfileMutation.mutate({ userId: editingUser.id, fullName: editName.trim(), email: editEmail.trim() });
+    updateProfileMutation.mutate({ userId: editingUser.id, fullName: editName.trim(), email: editEmail.trim(), oldName: editingUser.full_name, oldEmail: editingUser.email });
   };
 
   const getRoleBadgeVariant = (role: AppRole | null) => {
@@ -285,7 +303,7 @@ export function UserManagementDialog() {
                             <Select
                               value={u.role || "lecteur"}
                               onValueChange={(value: AppRole) =>
-                                updateRoleMutation.mutate({ userId: u.id, newRole: value })
+                                updateRoleMutation.mutate({ userId: u.id, newRole: value, oldRole: u.role, userName: u.full_name })
                               }
                             >
                               <SelectTrigger className="w-[160px]">

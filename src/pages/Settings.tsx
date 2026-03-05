@@ -187,18 +187,34 @@ export default function Settings() {
         'attachments': 'Pièces jointes',
         'project_themes': 'Thèmes de projets',
         'app_settings': 'Paramètres application',
-        'profiles': 'Profils utilisateurs',
+        'profiles': 'Utilisateurs',
+      };
+
+      // Map actions to user-friendly labels
+      const actionLabels: Record<string, string> = {
+        'creation': 'Création',
+        'modification': 'Modification',
+        'suppression': 'Suppression',
+        'invitation': 'Invitation',
       };
 
       // Enrich logs with project titles or friendly labels
       return logs?.map(log => {
+        const actionDisplay = actionLabels[log.action] || log.action;
+        const userName = (log.diff_json as any)?.full_name || (log.diff_json as any)?.new?.full_name;
+        
+        let entityDisplay: string;
         if (log.entite === 'projects' && projectTitles[log.entite_id]) {
-          return { ...log, entity_display: projectTitles[log.entite_id] };
+          entityDisplay = projectTitles[log.entite_id];
         } else if (log.entite === 'scores_raw' && scoresProjectMap[log.entite_id]) {
-          return { ...log, entity_display: `Scores (${scoresProjectMap[log.entite_id]})` };
+          entityDisplay = `Scores (${scoresProjectMap[log.entite_id]})`;
+        } else if ((log.entite === 'profiles' || log.entite === 'user_roles') && userName) {
+          entityDisplay = `${entityLabels[log.entite] || log.entite} (${userName})`;
         } else {
-          return { ...log, entity_display: entityLabels[log.entite] || log.entite };
+          entityDisplay = entityLabels[log.entite] || log.entite;
         }
+        
+        return { ...log, entity_display: entityDisplay, action_display: actionDisplay };
       });
     },
   });
@@ -360,7 +376,7 @@ export default function Settings() {
                             {log.profiles?.full_name || log.profiles?.email || "Système"}
                           </TableCell>
                           <TableCell className="text-sm">
-                            <span className="capitalize">{log.action}</span>
+                            {(log as any).action_display || log.action}
                           </TableCell>
                           <TableCell className="text-sm">
                             {log.entity_display}

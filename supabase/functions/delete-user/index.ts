@@ -81,6 +81,13 @@ serve(async (req) => {
       }
     }
 
+    // Get target user info before deletion for audit
+    const { data: targetProfile } = await supabaseAdmin
+      .from("profiles")
+      .select("full_name, email")
+      .eq("id", userId)
+      .single();
+
     // Delete role
     await supabaseAdmin.from("user_roles").delete().eq("user_id", userId);
 
@@ -93,6 +100,19 @@ serve(async (req) => {
       console.error("Failed to delete auth user:", deleteError);
       return json(500, { error: "Échec de la suppression du compte." });
     }
+
+    // Audit log: user deletion
+    await supabaseAdmin.from("audit_log").insert({
+      action: "suppression",
+      entite: "profiles",
+      entite_id: userId,
+      author_id: caller.id,
+      diff_json: {
+        full_name: targetProfile?.full_name || null,
+        email: targetProfile?.email || null,
+        role: targetRole?.role || null,
+      },
+    });
 
     return json(200, { success: true });
   } catch (error) {
