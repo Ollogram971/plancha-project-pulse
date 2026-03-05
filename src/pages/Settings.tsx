@@ -8,6 +8,7 @@ import { DatabaseServerSettings } from "@/components/DatabaseServerSettings";
 import { DataExportSettings } from "@/components/DataExportSettings";
 import { ProjectImportSettings } from "@/components/ProjectImportSettings";
 import { UserManualSettings } from "@/components/UserManualSettings";
+import { ProjectResetSettings } from "@/components/ProjectResetSettings";
 import { UserManagementDialog } from "@/components/UserManagementDialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -290,6 +291,9 @@ export default function Settings() {
 
         {/* Data Export Settings */}
         <DataExportSettings />
+
+        {/* Project Reset */}
+        <ProjectResetSettings />
 
         {/* Audit Log */}
         <Card>
