@@ -187,7 +187,15 @@ export default function Settings() {
         'attachments': 'Pièces jointes',
         'project_themes': 'Thèmes de projets',
         'app_settings': 'Paramètres application',
-        'profiles': 'Profils utilisateurs',
+        'profiles': 'Utilisateurs',
+      };
+
+      // Map actions to user-friendly labels
+      const actionLabels: Record<string, string> = {
+        'creation': 'Création',
+        'modification': 'Modification',
+        'suppression': 'Suppression',
+        'invitation': 'Invitation',
       };
 
       // Enrich logs with project titles or friendly labels

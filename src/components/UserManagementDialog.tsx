@@ -188,7 +188,7 @@ export function UserManagementDialog() {
       toast({ title: "Email requis", description: "L'email ne peut pas être vide.", variant: "destructive" });
       return;
     }
-    updateProfileMutation.mutate({ userId: editingUser.id, fullName: editName.trim(), email: editEmail.trim() });
+    updateProfileMutation.mutate({ userId: editingUser.id, fullName: editName.trim(), email: editEmail.trim(), oldName: editingUser.full_name, oldEmail: editingUser.email });
   };
 
   const getRoleBadgeVariant = (role: AppRole | null) => {
@@ -303,7 +303,7 @@ export function UserManagementDialog() {
                             <Select
                               value={u.role || "lecteur"}
                               onValueChange={(value: AppRole) =>
-                                updateRoleMutation.mutate({ userId: u.id, newRole: value })
+                                updateRoleMutation.mutate({ userId: u.id, newRole: value, oldRole: u.role, userName: u.full_name })
                               }
                             >
                               <SelectTrigger className="w-[160px]">
