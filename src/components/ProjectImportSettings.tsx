@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Upload, Download, FileSpreadsheet, AlertCircle, CheckCircle2, Loader2, X } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import { supabase } from "@/integrations/supabase/client";
 import { usePoles } from "@/hooks/usePoles";
 import { useQueryClient } from "@tanstack/react-query";
@@ -34,7 +34,7 @@ export function ProjectImportSettings() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const handleDownloadTemplate = () => {
+  const handleDownloadTemplate = async () => {
     const templateData = [
       {
         "Titre du projet*": "Restauration écologique zone humide",
@@ -52,8 +52,6 @@ export function ProjectImportSettings() {
     });
 
     const allData = [...templateData, ...emptyRows];
-    const ws = XLSX.utils.json_to_sheet(allData);
-    ws["!cols"] = [{ wch: 40 }, { wch: 20 }, { wch: 25 }, { wch: 50 }];
 
     const instructionsData = [
       { "Colonne": "Titre du projet*", "Description": "Titre du projet (obligatoire)", "Valeurs possibles": "Texte libre (min 3, max 200 caractères)" },
@@ -64,13 +62,32 @@ export function ProjectImportSettings() {
       { "Colonne": "Note", "Description": "Le code projet (PNG-AAAA-NNN) sera généré automatiquement lors de l'importation.", "Valeurs possibles": "" },
     ];
 
-    const wsInstructions = XLSX.utils.json_to_sheet(instructionsData);
-    wsInstructions["!cols"] = [{ wch: 25 }, { wch: 55 }, { wch: 50 }];
+    const wb = new ExcelJS.Workbook();
+    
+    // Projects sheet
+    const ws = wb.addWorksheet("Projets à importer");
+    const projectHeaders = ["Titre du projet*", "Pôle/Service (code)*", "Famille de thème", "Description"];
+    ws.addRow(projectHeaders);
+    ws.getRow(1).font = { bold: true };
+    allData.forEach(row => ws.addRow(Object.values(row)));
+    ws.columns = [{ width: 40 }, { width: 20 }, { width: 25 }, { width: 50 }];
 
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Projets à importer");
-    XLSX.utils.book_append_sheet(wb, wsInstructions, "Instructions");
-    XLSX.writeFile(wb, "template-import-projets-plancha.xlsx");
+    // Instructions sheet
+    const wsInstructions = wb.addWorksheet("Instructions");
+    const instrHeaders = ["Colonne", "Description", "Valeurs possibles"];
+    wsInstructions.addRow(instrHeaders);
+    wsInstructions.getRow(1).font = { bold: true };
+    instructionsData.forEach(row => wsInstructions.addRow(Object.values(row)));
+    wsInstructions.columns = [{ width: 25 }, { width: 55 }, { width: 50 }];
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "template-import-projets-plancha.xlsx";
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const validateProjects = (projects: ParsedProject[]): ValidationError[] => {
@@ -103,52 +120,55 @@ export function ProjectImportSettings() {
   const parseExcelFile = (file: File): Promise<ParsedProject[]> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
-          const data = new Uint8Array(e.target?.result as ArrayBuffer);
-          const workbook = XLSX.read(data, { type: "array" });
+          const buffer = e.target?.result as ArrayBuffer;
+          const wb = new ExcelJS.Workbook();
+          await wb.xlsx.load(buffer);
 
-          const firstSheet = workbook.SheetNames[0];
-          if (!firstSheet) {
+          const worksheet = wb.worksheets[0];
+          if (!worksheet) {
             reject(new Error("Le fichier Excel ne contient aucun onglet."));
             return;
           }
 
-          const worksheet = workbook.Sheets[firstSheet];
-          const jsonData = XLSX.utils.sheet_to_json<Record<string, string>>(worksheet);
+          // Read header row
+          const headerRow = worksheet.getRow(1);
+          const headers: string[] = [];
+          headerRow.eachCell((cell, colNumber) => {
+            headers[colNumber] = cell.value?.toString() ?? "";
+          });
 
-          if (jsonData.length === 0) {
+          if (headers.length === 0) {
             reject(new Error("Le fichier Excel ne contient aucune donnée."));
             return;
           }
 
-          // Check required columns
-          const firstRow = jsonData[0];
-          const keys = Object.keys(firstRow);
-          const hasTitre = keys.some(k => k.includes("Titre"));
-          const hasPole = keys.some(k => k.includes("Pôle") || k.includes("Pole"));
+          const hasTitre = headers.some(h => h?.includes("Titre"));
+          const hasPole = headers.some(h => h?.includes("Pôle") || h?.includes("Pole"));
 
           if (!hasTitre || !hasPole) {
             reject(new Error("Colonnes obligatoires manquantes. Utilisez le template fourni (Titre du projet*, Pôle/Service (code)*)."));
             return;
           }
 
-          const titreKey = keys.find(k => k.includes("Titre")) ?? "";
-          const poleKey = keys.find(k => k.includes("Pôle") || k.includes("Pole")) ?? "";
-          const familleKey = keys.find(k => k.toLowerCase().includes("famille") || k.toLowerCase().includes("thème") || k.toLowerCase().includes("theme")) ?? "";
-          const descKey = keys.find(k => k.toLowerCase().includes("description")) ?? "";
+          const titreCol = headers.findIndex(h => h?.includes("Titre"));
+          const poleCol = headers.findIndex(h => h?.includes("Pôle") || h?.includes("Pole"));
+          const familleCol = headers.findIndex(h => h && (h.toLowerCase().includes("famille") || h.toLowerCase().includes("thème") || h.toLowerCase().includes("theme")));
+          const descCol = headers.findIndex(h => h?.toLowerCase().includes("description"));
 
-          const projects: ParsedProject[] = jsonData
-            .filter(row => {
-              const titre = row[titreKey]?.toString().trim();
-              return titre && titre.length > 0;
-            })
-            .map(row => ({
-              titre: row[titreKey]?.toString().trim() ?? "",
-              pole_code: row[poleKey]?.toString().trim() ?? "",
-              famille_theme: familleKey ? row[familleKey]?.toString().trim() : undefined,
-              description: descKey ? row[descKey]?.toString().trim() : undefined,
-            }));
+          const projects: ParsedProject[] = [];
+          worksheet.eachRow((row, rowNumber) => {
+            if (rowNumber === 1) return; // skip header
+            const titre = row.getCell(titreCol)?.value?.toString().trim() ?? "";
+            if (!titre || titre.length === 0) return;
+            projects.push({
+              titre,
+              pole_code: row.getCell(poleCol)?.value?.toString().trim() ?? "",
+              famille_theme: familleCol >= 0 ? row.getCell(familleCol)?.value?.toString().trim() : undefined,
+              description: descCol >= 0 ? row.getCell(descCol)?.value?.toString().trim() : undefined,
+            });
+          });
 
           if (projects.length === 0) {
             reject(new Error("Aucun projet valide trouvé dans le fichier."));
