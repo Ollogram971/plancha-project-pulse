@@ -34,60 +34,11 @@ export function ProjectImportSettings() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const handleDownloadTemplate = async () => {
-    const templateData = [
-      {
-        "Titre du projet*": "Restauration écologique zone humide",
-        "Pôle/Service (code)*": "DSI",
-        "Famille de thème": "Biodiversité",
-        "Description": "Description détaillée du projet",
-      },
-    ];
-
-    const emptyRows = Array(19).fill({
-      "Titre du projet*": "",
-      "Pôle/Service (code)*": "",
-      "Famille de thème": "",
-      "Description": "",
-    });
-
-    const allData = [...templateData, ...emptyRows];
-
-    const instructionsData = [
-      { "Colonne": "Titre du projet*", "Description": "Titre du projet (obligatoire)", "Valeurs possibles": "Texte libre (min 3, max 200 caractères)" },
-      { "Colonne": "Pôle/Service (code)*", "Description": "Code du pôle/service (obligatoire)", "Valeurs possibles": "Code existant dans l'application (ex: DSI, DRH)" },
-      { "Colonne": "Famille de thème", "Description": "Famille thématique du projet", "Valeurs possibles": "Texte libre (ex: Biodiversité, Numérique)" },
-      { "Colonne": "Description", "Description": "Description détaillée du projet", "Valeurs possibles": "Texte libre (max 5000 caractères)" },
-      { "Colonne": "", "Description": "", "Valeurs possibles": "" },
-      { "Colonne": "Note", "Description": "Le code projet (PNG-AAAA-NNN) sera généré automatiquement lors de l'importation.", "Valeurs possibles": "" },
-    ];
-
-    const wb = new ExcelJS.Workbook();
-    
-    // Projects sheet
-    const ws = wb.addWorksheet("Projets à importer");
-    const projectHeaders = ["Titre du projet*", "Pôle/Service (code)*", "Famille de thème", "Description"];
-    ws.addRow(projectHeaders);
-    ws.getRow(1).font = { bold: true };
-    allData.forEach(row => ws.addRow(Object.values(row)));
-    ws.columns = [{ width: 40 }, { width: 20 }, { width: 25 }, { width: 50 }];
-
-    // Instructions sheet
-    const wsInstructions = wb.addWorksheet("Instructions");
-    const instrHeaders = ["Colonne", "Description", "Valeurs possibles"];
-    wsInstructions.addRow(instrHeaders);
-    wsInstructions.getRow(1).font = { bold: true };
-    instructionsData.forEach(row => wsInstructions.addRow(Object.values(row)));
-    wsInstructions.columns = [{ width: 25 }, { width: 55 }, { width: 50 }];
-
-    const buffer = await wb.xlsx.writeBuffer();
-    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-    const url = URL.createObjectURL(blob);
+  const handleDownloadTemplate = () => {
     const a = document.createElement("a");
-    a.href = url;
+    a.href = "/template-import-projets-plancha.xlsx";
     a.download = "template-import-projets-plancha.xlsx";
     a.click();
-    URL.revokeObjectURL(url);
   };
 
   const validateProjects = (projects: ParsedProject[]): ValidationError[] => {
