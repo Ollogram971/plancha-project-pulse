@@ -70,6 +70,7 @@ export function UserManagementDialog() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users-with-roles"] });
+      queryClient.invalidateQueries({ queryKey: ["audit-logs"] });
       toast({ title: "Rôle mis à jour", description: "Le rôle de l'utilisateur a été modifié avec succès." });
     },
     onError: (error) => {
@@ -97,6 +98,7 @@ export function UserManagementDialog() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users-with-roles"] });
+      queryClient.invalidateQueries({ queryKey: ["audit-logs"] });
       setEditDialogOpen(false);
       setEditingUser(null);
       toast({ title: "Profil mis à jour", description: "Le nom et l'email ont été modifiés avec succès." });
@@ -130,6 +132,7 @@ export function UserManagementDialog() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users-with-roles"] });
+      queryClient.invalidateQueries({ queryKey: ["audit-logs"] });
       toast({ title: "Utilisateur supprimé", description: "L'utilisateur a été retiré avec succès." });
     },
     onError: (error) => {
@@ -148,6 +151,7 @@ export function UserManagementDialog() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users-with-roles"] });
+      queryClient.invalidateQueries({ queryKey: ["audit-logs"] });
       setInviteEmail("");
       setInviteName("");
       setInviteRole("lecteur");
