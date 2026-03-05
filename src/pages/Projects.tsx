@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Search, RotateCcw, Euro, Printer, FileSpreadsheet } from "lucide-react";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -132,25 +132,40 @@ export default function Projects() {
       "Score PLANCHA": project.score_total !== null ? project.score_total : "-",
     }));
 
-    const ws = XLSX.utils.json_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Projets");
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet("Projets");
+
+    const headers = ["#", "Code", "Titre", "Pôle/Service", "Famille", "Statut", "Date démarrage", "Budget (€)", "Score PLANCHA"];
+    ws.addRow(headers);
+    // Bold header row
+    ws.getRow(1).font = { bold: true };
+
+    data.forEach(row => {
+      ws.addRow(Object.values(row));
+    });
 
     // Set column widths
-    ws['!cols'] = [
-      { wch: 5 },  // #
-      { wch: 12 }, // Code
-      { wch: 40 }, // Titre
-      { wch: 20 }, // Pôle
-      { wch: 15 }, // Famille
-      { wch: 12 }, // Statut
-      { wch: 15 }, // Date
-      { wch: 12 }, // Budget
-      { wch: 15 }, // Score
+    ws.columns = [
+      { width: 5 },  // #
+      { width: 12 }, // Code
+      { width: 40 }, // Titre
+      { width: 20 }, // Pôle
+      { width: 15 }, // Famille
+      { width: 12 }, // Statut
+      { width: 15 }, // Date
+      { width: 12 }, // Budget
+      { width: 15 }, // Score
     ];
 
     const today = new Date().toISOString().slice(0, 10);
-    XLSX.writeFile(wb, `projets-plancha-${today}.xlsx`);
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `projets-plancha-${today}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
   const filteredProjects = useMemo(() => {
     if (!projects) return [];
